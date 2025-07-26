@@ -268,19 +268,6 @@ function UsersTable() {
     <>
       <SearchForm onSearch={handleSearch} onReset={handleReset} />
       
-      {/* 显示当前搜索条件 */}
-      {(full_name || email || role || status) && (
-        <Box mb={4} p={3} bg="blue.50" borderRadius="md" borderLeft="4px solid" borderLeftColor="blue.500">
-          <Heading size="sm" mb={2} color="blue.700">当前搜索条件:</Heading>
-          <Flex gap={4} wrap="wrap" fontSize="sm" color="blue.600">
-            {full_name && <span>全名: {full_name}</span>}
-            {email && <span>邮箱: {email}</span>}
-            {role && <span>角色: {role === 'superuser' ? '超级管理员' : '普通用户'}</span>}
-            {status && <span>状态: {status === 'active' ? '活跃' : '未激活'}</span>}
-          </Flex>
-        </Box>
-      )}
-      
       <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
           <Table.Row bg="gray.50">
