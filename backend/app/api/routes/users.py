@@ -1,7 +1,7 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import col, delete, func, select
 
 from app import crud
@@ -34,15 +34,55 @@ router = APIRouter(prefix="/users", tags=["users"])
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UsersPublic,
 )
-def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+def read_users(
+    session: SessionDep, 
+    skip: int = 0, 
+    limit: int = 100,
+    full_name: str | None = Query(None, description="搜索全名（模糊匹配）"),
+    email: str | None = Query(None, description="搜索邮箱（模糊匹配）"), 
+    role: str | None = Query(None, description="用户角色，可选值：superuser, user"),
+    status: str | None = Query(None, description="用户状态，可选值：active, inactive")
+) -> Any:
     """
-    Retrieve users.
+    Retrieve users with optional filters.
     """
 
-    count_statement = select(func.count()).select_from(User)
-    count = session.exec(count_statement).one()
+    # 构建查询条件
+    conditions = []
+    
+    if full_name:
+        conditions.append(col(User.full_name).icontains(full_name))
+    
+    if email:
+        conditions.append(col(User.email).icontains(email))
+    
+    if role:
+        if role.lower() == "superuser":
+            conditions.append(User.is_superuser == True)
+        elif role.lower() == "user":
+            conditions.append(User.is_superuser == False)
+    
+    if status:
+        if status.lower() == "active":
+            conditions.append(User.is_active == True)
+        elif status.lower() == "inactive":
+            conditions.append(User.is_active == False)
 
-    statement = select(User).offset(skip).limit(limit)
+    # 构建基础查询
+    base_query = select(User)
+    count_query = select(func.count()).select_from(User)
+    
+    # 应用过滤条件
+    if conditions:
+        for condition in conditions:
+            base_query = base_query.where(condition)
+            count_query = count_query.where(condition)
+
+    # 获取总数
+    count = session.exec(count_query).one()
+
+    # 获取分页数据
+    statement = base_query.offset(skip).limit(limit)
     users = session.exec(statement).all()
 
     return UsersPublic(data=users, count=count)
