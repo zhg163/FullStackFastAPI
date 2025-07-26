@@ -172,8 +172,24 @@ export type PrivateCreateUserData = {
 export type PrivateCreateUserResponse = UserPublic
 
 export type UsersReadUsersData = {
+  /**
+   * 搜索邮箱（模糊匹配）
+   */
+  email?: string | null
+  /**
+   * 搜索全名（模糊匹配）
+   */
+  fullName?: string | null
   limit?: number
+  /**
+   * 用户角色，可选值：superuser, user
+   */
+  role?: string | null
   skip?: number
+  /**
+   * 用户状态，可选值：active, inactive
+   */
+  status?: string | null
 }
 
 export type UsersReadUsersResponse = UsersPublic

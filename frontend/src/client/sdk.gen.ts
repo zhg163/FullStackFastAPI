@@ -301,10 +301,14 @@ export class PrivateService {
 export class UsersService {
   /**
    * Read Users
-   * Retrieve users.
+   * Retrieve users with optional filters.
    * @param data The data for the request.
    * @param data.skip
    * @param data.limit
+   * @param data.fullName 搜索全名（模糊匹配）
+   * @param data.email 搜索邮箱（模糊匹配）
+   * @param data.role 用户角色，可选值：superuser, user
+   * @param data.status 用户状态，可选值：active, inactive
    * @returns UsersPublic Successful Response
    * @throws ApiError
    */
@@ -317,6 +321,10 @@ export class UsersService {
       query: {
         skip: data.skip,
         limit: data.limit,
+        full_name: data.fullName,
+        email: data.email,
+        role: data.role,
+        status: data.status,
       },
       errors: {
         422: "Validation Error",

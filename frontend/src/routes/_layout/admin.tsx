@@ -1,4 +1,4 @@
-import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Stack } from "@chakra-ui/react"
+import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Stack, Grid, GridItem } from "@chakra-ui/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
@@ -45,7 +45,7 @@ function getUsersQueryOptions({
     limit: PER_PAGE,
   }
   
-  if (full_name) params.full_name = full_name
+  if (full_name) params.fullName = full_name
   if (email) params.email = email
   if (role) params.role = role
   if (status) params.status = status
@@ -84,6 +84,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
     if (role) filters.role = role
     if (status) filters.status = status
     
+    console.log("搜索条件:", filters) // 添加调试日志
     onSearch(filters)
   }
 
@@ -96,83 +97,116 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
   }
 
   return (
-    <Box p={4} bg="gray.50" borderRadius="md" mb={4}>
-      <Heading size="md" mb={4}>搜索条件</Heading>
-      <Flex gap={4} wrap="wrap" align="end">
-        <Field label="全名">
-          <Input
-            placeholder="输入全名"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            w="200px"
-          />
-        </Field>
+    <Box p={6} bg="gray.50" borderRadius="lg" mb={6} shadow="sm">
+      <Heading size="md" mb={4} color="gray.700">搜索条件</Heading>
+      
+      {/* 使用Grid布局实现响应式横向排列 */}
+      <Grid 
+        templateColumns={{ 
+          base: "1fr", 
+          md: "repeat(2, 1fr)", 
+          lg: "repeat(4, 1fr)" 
+        }} 
+        gap={4} 
+        mb={4}
+      >
+        <GridItem>
+          <Field label="全名">
+            <Input
+              placeholder="输入全名"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              bg="white"
+              borderColor="gray.300"
+              _hover={{ borderColor: "gray.400" }}
+              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+            />
+          </Field>
+        </GridItem>
         
-        <Field label="邮箱">
-          <Input
-            placeholder="输入邮箱"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            w="200px"
-          />
-        </Field>
+        <GridItem>
+          <Field label="邮箱">
+            <Input
+              placeholder="输入邮箱"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              bg="white"
+              borderColor="gray.300"
+              _hover={{ borderColor: "gray.400" }}
+              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+            />
+          </Field>
+        </GridItem>
         
-        <Field label="角色">
-          <Box>
-            <select
-              value={role}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRole(e.target.value)}
-              style={{
-                width: "150px",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1px solid #E2E8F0",
-                fontSize: "14px"
-              }}
-            >
-              <option value="">选择角色</option>
-              <option value="superuser">超级管理员</option>
-              <option value="user">普通用户</option>
-            </select>
-          </Box>
-        </Field>
+        <GridItem>
+          <Field label="角色">
+            <Box>
+              <select
+                value={role}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRole(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #E2E8F0",
+                  fontSize: "14px",
+                  backgroundColor: "white",
+                  cursor: "pointer"
+                }}
+              >
+                <option value="">选择角色</option>
+                <option value="superuser">超级管理员</option>
+                <option value="user">普通用户</option>
+              </select>
+            </Box>
+          </Field>
+        </GridItem>
         
-        <Field label="状态">
-          <Box>
-            <select
-              value={status}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatus(e.target.value)}
-              style={{
-                width: "150px",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1px solid #E2E8F0",
-                fontSize: "14px"
-              }}
-            >
-              <option value="">选择状态</option>
-              <option value="active">活跃</option>
-              <option value="inactive">未激活</option>
-            </select>
-          </Box>
-        </Field>
-        
-        <Stack direction="row" gap={2}>
-          <Button
-            colorScheme="blue"
-            onClick={handleSearch}
-          >
-            <FiSearch style={{ marginRight: "4px" }} />
-            搜索
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleReset}
-          >
-            <FiRefreshCcw style={{ marginRight: "4px" }} />
-            重置
-          </Button>
-        </Stack>
+        <GridItem>
+          <Field label="状态">
+            <Box>
+              <select
+                value={status}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatus(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #E2E8F0",
+                  fontSize: "14px",
+                  backgroundColor: "white",
+                  cursor: "pointer"
+                }}
+              >
+                <option value="">选择状态</option>
+                <option value="active">活跃</option>
+                <option value="inactive">未激活</option>
+              </select>
+            </Box>
+          </Field>
+        </GridItem>
+      </Grid>
+      
+      {/* 按钮区域 */}
+      <Flex gap={3} justify={{ base: "center", md: "flex-start" }}>
+        <Button
+          colorScheme="blue"
+          onClick={handleSearch}
+          size="md"
+          minW="100px"
+        >
+          <FiSearch style={{ marginRight: "6px" }} />
+          搜索
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleReset}
+          size="md"
+          minW="100px"
+        >
+          <FiRefreshCcw style={{ marginRight: "6px" }} />
+          重置
+        </Button>
       </Flex>
     </Box>
   )
@@ -201,12 +235,14 @@ function UsersTable() {
     role?: string
     status?: string
   }) => {
+    console.log("执行搜索:", filters) // 添加调试日志
     navigate({
       search: () => ({ ...filters, page: 1 }),
     })
   }
 
   const handleReset = () => {
+    console.log("执行重置") // 添加调试日志
     navigate({
       search: () => ({ page: 1 }),
     })
@@ -214,6 +250,10 @@ function UsersTable() {
 
   const users = data?.data.slice(0, PER_PAGE) ?? []
   const count = data?.count ?? 0
+
+  // 添加当前搜索条件的显示
+  console.log("当前搜索参数:", { page, full_name, email, role, status })
+  console.log("查询结果:", { users: users.length, count })
 
   if (isLoading) {
     return (
@@ -228,19 +268,32 @@ function UsersTable() {
     <>
       <SearchForm onSearch={handleSearch} onReset={handleReset} />
       
-      <Table.Root size={{ base: "sm", md: "md" }}>
+      {/* 显示当前搜索条件 */}
+      {(full_name || email || role || status) && (
+        <Box mb={4} p={3} bg="blue.50" borderRadius="md" borderLeft="4px solid" borderLeftColor="blue.500">
+          <Heading size="sm" mb={2} color="blue.700">当前搜索条件:</Heading>
+          <Flex gap={4} wrap="wrap" fontSize="sm" color="blue.600">
+            {full_name && <span>全名: {full_name}</span>}
+            {email && <span>邮箱: {email}</span>}
+            {role && <span>角色: {role === 'superuser' ? '超级管理员' : '普通用户'}</span>}
+            {status && <span>状态: {status === 'active' ? '活跃' : '未激活'}</span>}
+          </Flex>
+        </Box>
+      )}
+      
+      <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeader w="sm">Full name</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm">Email</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm">Role</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm">Status</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm">Actions</Table.ColumnHeader>
+          <Table.Row bg="gray.50">
+            <Table.ColumnHeader w="sm" fontWeight="bold">Full name</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">Email</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">Role</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">Status</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">Actions</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {users?.map((user) => (
-            <Table.Row key={user.id} opacity={isPlaceholderData ? 0.5 : 1}>
+            <Table.Row key={user.id} opacity={isPlaceholderData ? 0.5 : 1} _hover={{ bg: "gray.50" }}>
               <Table.Cell color={!user.full_name ? "gray" : "inherit"}>
                 {user.full_name || "N/A"}
                 {currentUser?.id === user.id && (
@@ -253,9 +306,15 @@ function UsersTable() {
                 {user.email}
               </Table.Cell>
               <Table.Cell>
-                {user.is_superuser ? "Superuser" : "User"}
+                <Badge colorScheme={user.is_superuser ? "purple" : "green"}>
+                  {user.is_superuser ? "Superuser" : "User"}
+                </Badge>
               </Table.Cell>
-              <Table.Cell>{user.is_active ? "Active" : "Inactive"}</Table.Cell>
+              <Table.Cell>
+                <Badge colorScheme={user.is_active ? "green" : "red"}>
+                  {user.is_active ? "Active" : "Inactive"}
+                </Badge>
+              </Table.Cell>
               <Table.Cell>
                 <UserActionsMenu
                   user={user}
@@ -284,7 +343,7 @@ function UsersTable() {
       )}
       
       {count === 0 && (
-        <Box textAlign="center" py={8} color="gray.500">
+        <Box textAlign="center" py={8} color="gray.500" bg="white" borderRadius="md" shadow="sm">
           {full_name || email || role || status ? "未找到匹配的用户" : "暂无用户数据"}
         </Box>
       )}
@@ -294,8 +353,8 @@ function UsersTable() {
 
 function Admin() {
   return (
-    <Container maxW="full">
-      <Heading size="lg" pt={12}>
+    <Container maxW="full" p={6}>
+      <Heading size="lg" pt={12} mb={6} color="gray.800">
         Users Management
       </Heading>
 
