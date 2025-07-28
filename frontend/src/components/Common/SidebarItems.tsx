@@ -1,7 +1,7 @@
 import { Box, Flex, Icon, Text } from "@chakra-ui/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Link as RouterLink } from "@tanstack/react-router"
-import { FiBriefcase, FiHome, FiSettings, FiUsers, FiFolder, FiUser } from "react-icons/fi"
+import { FiBriefcase, FiHome, FiSettings, FiUsers, FiFolder, FiUser, FiLayers } from "react-icons/fi"
 import type { IconType } from "react-icons/lib"
 
 import type { UserPublic } from "@/client"
@@ -31,7 +31,8 @@ const SidebarItems = ({ onClose }: SidebarItemsProps) => {
         ...items, 
         { icon: FiUsers, title: "Admin", path: "/admin" },
         { icon: FiFolder, title: "角色分类", path: "/role-dirs" },
-        { icon: FiUser, title: "角色管理", path: "/roles" }
+        { icon: FiUser, title: "角色管理", path: "/roles" },
+        { icon: FiLayers, title: "角色模板", path: "/role-templates" }
       ]
     : items
 

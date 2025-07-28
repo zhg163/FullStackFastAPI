@@ -159,6 +159,7 @@ class Role(RoleBase, table=True):
     # 外键关系到roles_dir
     ip_id: int = Field(foreign_key="roles_dir.id", description="IP分类ID（关联roles_dir表）")
     role_dir: RoleDir | None = Relationship(back_populates="roles")
+    templates: list["RoleTemplate"] = Relationship(back_populates="role")
 
 
 # Properties to return via API
@@ -194,3 +195,61 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+# RoleTemplate models - 角色模板
+class RoleTemplateBase(SQLModel):
+    role_id: int = Field(description="星图角色ID（关联roles表）")
+    template_name: str | None = Field(default=None, max_length=255, description="模板名称")
+    is_active: str | None = Field(default=None, max_length=1, description="是否激活(Y/N)")
+
+class RoleTemplateCreate(RoleTemplateBase):
+    pass
+
+class RoleTemplateUpdate(RoleTemplateBase):
+    role_id: int | None = Field(default=None, description="星图角色ID（关联roles表）")
+
+class RoleTemplate(RoleTemplateBase, table=True):
+    __tablename__ = "role_template"
+    id: int = Field(primary_key=True)
+    created_at: datetime | None = Field(default_factory=datetime.now)
+    role_id: int = Field(foreign_key="roles.id", description="星图角色ID")
+    role: Role | None = Relationship(back_populates="templates")
+    items: list["RoleTemplateItem"] = Relationship(back_populates="template", cascade_delete=True)
+
+class RoleTemplatePublic(RoleTemplateBase):
+    id: int
+    created_at: datetime | None
+    role: RolePublic | None = None
+
+class RoleTemplatesPublic(SQLModel):
+    data: list[RoleTemplatePublic]
+    count: int
+
+# RoleTemplateItem models - 角色模板条目
+class RoleTemplateItemBase(SQLModel):
+    item_name: str = Field(min_length=1, max_length=255, description="条目名称")
+    item_prompt_desc: str | None = Field(default=None, description="提示词描述")
+
+class RoleTemplateItemCreate(RoleTemplateItemBase):
+    role_tmp_id: int = Field(description="角色模板ID（关联role_template表）")
+
+class RoleTemplateItemUpdate(RoleTemplateItemBase):
+    item_name: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    role_tmp_id: int | None = Field(default=None, description="角色模板ID（关联role_template表）")
+
+class RoleTemplateItem(RoleTemplateItemBase, table=True):
+    __tablename__ = "role_template_item"
+    id: int = Field(primary_key=True)
+    created_at: datetime | None = Field(default_factory=datetime.now)
+    role_tmp_id: int = Field(foreign_key="role_template.id", description="角色模板ID")
+    template: RoleTemplate | None = Relationship(back_populates="items")
+
+class RoleTemplateItemPublic(RoleTemplateItemBase):
+    id: int
+    role_tmp_id: int
+    created_at: datetime | None
+    template: RoleTemplatePublic | None = None
+
+class RoleTemplateItemsPublic(SQLModel):
+    data: list[RoleTemplateItemPublic]
+    count: int

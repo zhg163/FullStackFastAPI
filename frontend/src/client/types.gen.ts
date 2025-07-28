@@ -131,6 +131,106 @@ export type RolesPublic = {
     count: number;
 };
 
+export type RoleTemplateCreate = {
+    /**
+     * 星图角色ID（关联roles表）
+     */
+    role_id: number;
+    /**
+     * 模板名称
+     */
+    template_name?: (string | null);
+    /**
+     * 是否激活(Y/N)
+     */
+    is_active?: (string | null);
+};
+
+export type RoleTemplateItemCreate = {
+    /**
+     * 条目名称
+     */
+    item_name: string;
+    /**
+     * 提示词描述
+     */
+    item_prompt_desc?: (string | null);
+    /**
+     * 角色模板ID（关联role_template表）
+     */
+    role_tmp_id: number;
+};
+
+export type RoleTemplateItemPublic = {
+    /**
+     * 条目名称
+     */
+    item_name: string;
+    /**
+     * 提示词描述
+     */
+    item_prompt_desc?: (string | null);
+    id: number;
+    role_tmp_id: number;
+    created_at: (string | null);
+    template?: (RoleTemplatePublic | null);
+};
+
+export type RoleTemplateItemsPublic = {
+    data: Array<RoleTemplateItemPublic>;
+    count: number;
+};
+
+export type RoleTemplateItemUpdate = {
+    item_name?: (string | null);
+    /**
+     * 提示词描述
+     */
+    item_prompt_desc?: (string | null);
+    /**
+     * 角色模板ID（关联role_template表）
+     */
+    role_tmp_id?: (number | null);
+};
+
+export type RoleTemplatePublic = {
+    /**
+     * 星图角色ID（关联roles表）
+     */
+    role_id: number;
+    /**
+     * 模板名称
+     */
+    template_name?: (string | null);
+    /**
+     * 是否激活(Y/N)
+     */
+    is_active?: (string | null);
+    id: number;
+    created_at: (string | null);
+    role?: (RolePublic | null);
+};
+
+export type RoleTemplatesPublic = {
+    data: Array<RoleTemplatePublic>;
+    count: number;
+};
+
+export type RoleTemplateUpdate = {
+    /**
+     * 星图角色ID（关联roles表）
+     */
+    role_id?: (number | null);
+    /**
+     * 模板名称
+     */
+    template_name?: (string | null);
+    /**
+     * 是否激活(Y/N)
+     */
+    is_active?: (string | null);
+};
+
 export type RoleUpdate = {
     name?: (string | null);
     /**
@@ -354,6 +454,90 @@ export type RolesDeleteRoleData = {
 };
 
 export type RolesDeleteRoleResponse = (Message);
+
+export type RoleTemplateItemsReadRoleTemplateItemsData = {
+    /**
+     * 搜索条目名称（模糊匹配）
+     */
+    itemName?: (string | null);
+    limit?: number;
+    /**
+     * 角色模板ID筛选
+     */
+    roleTmpId?: (number | null);
+    skip?: number;
+};
+
+export type RoleTemplateItemsReadRoleTemplateItemsResponse = (RoleTemplateItemsPublic);
+
+export type RoleTemplateItemsCreateRoleTemplateItemData = {
+    requestBody: RoleTemplateItemCreate;
+};
+
+export type RoleTemplateItemsCreateRoleTemplateItemResponse = (RoleTemplateItemPublic);
+
+export type RoleTemplateItemsReadRoleTemplateItemByIdData = {
+    roleTemplateItemId: number;
+};
+
+export type RoleTemplateItemsReadRoleTemplateItemByIdResponse = (RoleTemplateItemPublic);
+
+export type RoleTemplateItemsUpdateRoleTemplateItemData = {
+    requestBody: RoleTemplateItemUpdate;
+    roleTemplateItemId: number;
+};
+
+export type RoleTemplateItemsUpdateRoleTemplateItemResponse = (RoleTemplateItemPublic);
+
+export type RoleTemplateItemsDeleteRoleTemplateItemData = {
+    roleTemplateItemId: number;
+};
+
+export type RoleTemplateItemsDeleteRoleTemplateItemResponse = (Message);
+
+export type RoleTemplatesReadRoleTemplatesData = {
+    /**
+     * 激活状态筛选(Y/N)
+     */
+    isActive?: (string | null);
+    limit?: number;
+    /**
+     * 角色ID筛选
+     */
+    roleId?: (number | null);
+    skip?: number;
+    /**
+     * 搜索模板名称（模糊匹配）
+     */
+    templateName?: (string | null);
+};
+
+export type RoleTemplatesReadRoleTemplatesResponse = (RoleTemplatesPublic);
+
+export type RoleTemplatesCreateRoleTemplateData = {
+    requestBody: RoleTemplateCreate;
+};
+
+export type RoleTemplatesCreateRoleTemplateResponse = (RoleTemplatePublic);
+
+export type RoleTemplatesReadRoleTemplateByIdData = {
+    roleTemplateId: number;
+};
+
+export type RoleTemplatesReadRoleTemplateByIdResponse = (RoleTemplatePublic);
+
+export type RoleTemplatesUpdateRoleTemplateData = {
+    requestBody: RoleTemplateUpdate;
+    roleTemplateId: number;
+};
+
+export type RoleTemplatesUpdateRoleTemplateResponse = (RoleTemplatePublic);
+
+export type RoleTemplatesDeleteRoleTemplateData = {
+    roleTemplateId: number;
+};
+
+export type RoleTemplatesDeleteRoleTemplateResponse = (Message);
 
 export type UsersReadUsersData = {
     /**

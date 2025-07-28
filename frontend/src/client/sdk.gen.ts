@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, RoleDirsReadRoleDirsData, RoleDirsReadRoleDirsResponse, RoleDirsCreateRoleDirData, RoleDirsCreateRoleDirResponse, RoleDirsReadRoleDirByIdData, RoleDirsReadRoleDirByIdResponse, RoleDirsUpdateRoleDirData, RoleDirsUpdateRoleDirResponse, RoleDirsDeleteRoleDirData, RoleDirsDeleteRoleDirResponse, RolesReadRolesData, RolesReadRolesResponse, RolesCreateRoleData, RolesCreateRoleResponse, RolesReadRoleByIdData, RolesReadRoleByIdResponse, RolesUpdateRoleData, RolesUpdateRoleResponse, RolesDeleteRoleData, RolesDeleteRoleResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, RoleDirsReadRoleDirsData, RoleDirsReadRoleDirsResponse, RoleDirsCreateRoleDirData, RoleDirsCreateRoleDirResponse, RoleDirsReadRoleDirByIdData, RoleDirsReadRoleDirByIdResponse, RoleDirsUpdateRoleDirData, RoleDirsUpdateRoleDirResponse, RoleDirsDeleteRoleDirData, RoleDirsDeleteRoleDirResponse, RolesReadRolesData, RolesReadRolesResponse, RolesCreateRoleData, RolesCreateRoleResponse, RolesReadRoleByIdData, RolesReadRoleByIdResponse, RolesUpdateRoleData, RolesUpdateRoleResponse, RolesDeleteRoleData, RolesDeleteRoleResponse, RoleTemplateItemsReadRoleTemplateItemsData, RoleTemplateItemsReadRoleTemplateItemsResponse, RoleTemplateItemsCreateRoleTemplateItemData, RoleTemplateItemsCreateRoleTemplateItemResponse, RoleTemplateItemsReadRoleTemplateItemByIdData, RoleTemplateItemsReadRoleTemplateItemByIdResponse, RoleTemplateItemsUpdateRoleTemplateItemData, RoleTemplateItemsUpdateRoleTemplateItemResponse, RoleTemplateItemsDeleteRoleTemplateItemData, RoleTemplateItemsDeleteRoleTemplateItemResponse, RoleTemplatesReadRoleTemplatesData, RoleTemplatesReadRoleTemplatesResponse, RoleTemplatesCreateRoleTemplateData, RoleTemplatesCreateRoleTemplateResponse, RoleTemplatesReadRoleTemplateByIdData, RoleTemplatesReadRoleTemplateByIdResponse, RoleTemplatesUpdateRoleTemplateData, RoleTemplatesUpdateRoleTemplateResponse, RoleTemplatesDeleteRoleTemplateData, RoleTemplatesDeleteRoleTemplateResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ItemsService {
     /**
@@ -465,6 +465,240 @@ export class RolesService {
             url: '/api/v1/roles/{role_id}',
             path: {
                 role_id: data.roleId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+}
+
+export class RoleTemplateItemsService {
+    /**
+     * Read Role Template Items
+     * Retrieve role template items with optional filters.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @param data.itemName 搜索条目名称（模糊匹配）
+     * @param data.roleTmpId 角色模板ID筛选
+     * @returns RoleTemplateItemsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readRoleTemplateItems(data: RoleTemplateItemsReadRoleTemplateItemsData = {}): CancelablePromise<RoleTemplateItemsReadRoleTemplateItemsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/role-template-items/',
+            query: {
+                skip: data.skip,
+                limit: data.limit,
+                item_name: data.itemName,
+                role_tmp_id: data.roleTmpId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Role Template Item
+     * Create new role template item.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RoleTemplateItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static createRoleTemplateItem(data: RoleTemplateItemsCreateRoleTemplateItemData): CancelablePromise<RoleTemplateItemsCreateRoleTemplateItemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/role-template-items/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Role Template Item By Id
+     * Get role template item by ID.
+     * @param data The data for the request.
+     * @param data.roleTemplateItemId
+     * @returns RoleTemplateItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static readRoleTemplateItemById(data: RoleTemplateItemsReadRoleTemplateItemByIdData): CancelablePromise<RoleTemplateItemsReadRoleTemplateItemByIdResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/role-template-items/{role_template_item_id}',
+            path: {
+                role_template_item_id: data.roleTemplateItemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Role Template Item
+     * Update a role template item.
+     * @param data The data for the request.
+     * @param data.roleTemplateItemId
+     * @param data.requestBody
+     * @returns RoleTemplateItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateRoleTemplateItem(data: RoleTemplateItemsUpdateRoleTemplateItemData): CancelablePromise<RoleTemplateItemsUpdateRoleTemplateItemResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/role-template-items/{role_template_item_id}',
+            path: {
+                role_template_item_id: data.roleTemplateItemId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Role Template Item
+     * Delete a role template item.
+     * @param data The data for the request.
+     * @param data.roleTemplateItemId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteRoleTemplateItem(data: RoleTemplateItemsDeleteRoleTemplateItemData): CancelablePromise<RoleTemplateItemsDeleteRoleTemplateItemResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/role-template-items/{role_template_item_id}',
+            path: {
+                role_template_item_id: data.roleTemplateItemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+}
+
+export class RoleTemplatesService {
+    /**
+     * Read Role Templates
+     * Retrieve role templates with optional filters.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @param data.templateName 搜索模板名称（模糊匹配）
+     * @param data.roleId 角色ID筛选
+     * @param data.isActive 激活状态筛选(Y/N)
+     * @returns RoleTemplatesPublic Successful Response
+     * @throws ApiError
+     */
+    public static readRoleTemplates(data: RoleTemplatesReadRoleTemplatesData = {}): CancelablePromise<RoleTemplatesReadRoleTemplatesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/role-templates/',
+            query: {
+                skip: data.skip,
+                limit: data.limit,
+                template_name: data.templateName,
+                role_id: data.roleId,
+                is_active: data.isActive
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Role Template
+     * Create new role template.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RoleTemplatePublic Successful Response
+     * @throws ApiError
+     */
+    public static createRoleTemplate(data: RoleTemplatesCreateRoleTemplateData): CancelablePromise<RoleTemplatesCreateRoleTemplateResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/role-templates/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Role Template By Id
+     * Get role template by ID.
+     * @param data The data for the request.
+     * @param data.roleTemplateId
+     * @returns RoleTemplatePublic Successful Response
+     * @throws ApiError
+     */
+    public static readRoleTemplateById(data: RoleTemplatesReadRoleTemplateByIdData): CancelablePromise<RoleTemplatesReadRoleTemplateByIdResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/role-templates/{role_template_id}',
+            path: {
+                role_template_id: data.roleTemplateId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Role Template
+     * Update a role template.
+     * @param data The data for the request.
+     * @param data.roleTemplateId
+     * @param data.requestBody
+     * @returns RoleTemplatePublic Successful Response
+     * @throws ApiError
+     */
+    public static updateRoleTemplate(data: RoleTemplatesUpdateRoleTemplateData): CancelablePromise<RoleTemplatesUpdateRoleTemplateResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/role-templates/{role_template_id}',
+            path: {
+                role_template_id: data.roleTemplateId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Role Template
+     * Delete a role template.
+     * @param data The data for the request.
+     * @param data.roleTemplateId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteRoleTemplate(data: RoleTemplatesDeleteRoleTemplateData): CancelablePromise<RoleTemplatesDeleteRoleTemplateResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/role-templates/{role_template_id}',
+            path: {
+                role_template_id: data.roleTemplateId
             },
             errors: {
                 422: 'Validation Error'
