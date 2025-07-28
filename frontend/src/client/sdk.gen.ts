@@ -25,6 +25,16 @@ import type {
   LoginRecoverPasswordHtmlContentResponse,
   PrivateCreateUserData,
   PrivateCreateUserResponse,
+  RoleDirsReadRoleDirsData,
+  RoleDirsReadRoleDirsResponse,
+  RoleDirsCreateRoleDirData,
+  RoleDirsCreateRoleDirResponse,
+  RoleDirsReadRoleDirByIdData,
+  RoleDirsReadRoleDirByIdResponse,
+  RoleDirsUpdateRoleDirData,
+  RoleDirsUpdateRoleDirResponse,
+  RoleDirsDeleteRoleDirData,
+  RoleDirsDeleteRoleDirResponse,
   UsersReadUsersData,
   UsersReadUsersResponse,
   UsersCreateUserData,
@@ -291,6 +301,131 @@ export class PrivateService {
       url: "/api/v1/private/users/",
       body: data.requestBody,
       mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
+
+export class RoleDirsService {
+  /**
+   * Read Role Dirs
+   * 获取角色分类列表（支持筛选）
+   * @param data The data for the request.
+   * @param data.skip
+   * @param data.limit
+   * @param data.ip 搜索IP分类名称（模糊匹配）
+   * @param data.ipDesc 搜索IP描述（模糊匹配）
+   * @returns RoleDirsPublic Successful Response
+   * @throws ApiError
+   */
+  public static readRoleDirs(
+    data: RoleDirsReadRoleDirsData = {},
+  ): CancelablePromise<RoleDirsReadRoleDirsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/role-dirs/",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+        ip: data.ip,
+        ip_desc: data.ipDesc,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Create Role Dir
+   * 创建新的角色分类
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns RoleDirPublic Successful Response
+   * @throws ApiError
+   */
+  public static createRoleDir(
+    data: RoleDirsCreateRoleDirData,
+  ): CancelablePromise<RoleDirsCreateRoleDirResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/role-dirs/",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read Role Dir By Id
+   * 根据ID获取指定角色分类
+   * @param data The data for the request.
+   * @param data.roleDirId
+   * @returns RoleDirPublic Successful Response
+   * @throws ApiError
+   */
+  public static readRoleDirById(
+    data: RoleDirsReadRoleDirByIdData,
+  ): CancelablePromise<RoleDirsReadRoleDirByIdResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/role-dirs/{role_dir_id}",
+      path: {
+        role_dir_id: data.roleDirId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Role Dir
+   * 更新角色分类
+   * @param data The data for the request.
+   * @param data.roleDirId
+   * @param data.requestBody
+   * @returns RoleDirPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateRoleDir(
+    data: RoleDirsUpdateRoleDirData,
+  ): CancelablePromise<RoleDirsUpdateRoleDirResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/role-dirs/{role_dir_id}",
+      path: {
+        role_dir_id: data.roleDirId,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Role Dir
+   * 删除角色分类
+   * @param data The data for the request.
+   * @param data.roleDirId
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static deleteRoleDir(
+    data: RoleDirsDeleteRoleDirData,
+  ): CancelablePromise<RoleDirsDeleteRoleDirResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/role-dirs/{role_dir_id}",
+      path: {
+        role_dir_id: data.roleDirId,
+      },
       errors: {
         422: "Validation Error",
       },

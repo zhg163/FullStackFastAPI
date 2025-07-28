@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -89,6 +90,41 @@ class ItemPublic(ItemBase):
 
 class ItemsPublic(SQLModel):
     data: list[ItemPublic]
+    count: int
+
+
+# RoleDir models - 星图角色分类
+class RoleDirBase(SQLModel):
+    ip: str = Field(min_length=1, max_length=255, description="IP分类名称（游戏、动漫、小说）")
+    ip_desc: str | None = Field(default=None, max_length=255, description="IP描述")
+
+
+# Properties to receive via API on creation
+class RoleDirCreate(RoleDirBase):
+    pass
+
+
+# Properties to receive via API on update
+class RoleDirUpdate(RoleDirBase):
+    ip: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+
+
+# Database model
+class RoleDir(RoleDirBase, table=True):
+    __tablename__ = "roles_dir"
+    
+    id: int = Field(primary_key=True)
+    created_at: datetime | None = Field(default_factory=datetime.now)
+
+
+# Properties to return via API
+class RoleDirPublic(RoleDirBase):
+    id: int
+    created_at: datetime | None
+
+
+class RoleDirsPublic(SQLModel):
+    data: list[RoleDirPublic]
     count: int
 
 

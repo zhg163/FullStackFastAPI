@@ -51,6 +51,43 @@ export type PrivateUserCreate = {
   is_verified?: boolean
 }
 
+export type RoleDirCreate = {
+  /**
+   * IP分类名称（游戏、动漫、小说）
+   */
+  ip: string
+  /**
+   * IP描述
+   */
+  ip_desc?: string | null
+}
+
+export type RoleDirPublic = {
+  /**
+   * IP分类名称（游戏、动漫、小说）
+   */
+  ip: string
+  /**
+   * IP描述
+   */
+  ip_desc?: string | null
+  id: number
+  created_at: string | null
+}
+
+export type RoleDirsPublic = {
+  data: Array<RoleDirPublic>
+  count: number
+}
+
+export type RoleDirUpdate = {
+  ip?: string | null
+  /**
+   * IP描述
+   */
+  ip_desc?: string | null
+}
+
 export type Token = {
   access_token: string
   token_type?: string
@@ -170,6 +207,46 @@ export type PrivateCreateUserData = {
 }
 
 export type PrivateCreateUserResponse = UserPublic
+
+export type RoleDirsReadRoleDirsData = {
+  /**
+   * 搜索IP分类名称（模糊匹配）
+   */
+  ip?: string | null
+  /**
+   * 搜索IP描述（模糊匹配）
+   */
+  ipDesc?: string | null
+  limit?: number
+  skip?: number
+}
+
+export type RoleDirsReadRoleDirsResponse = RoleDirsPublic
+
+export type RoleDirsCreateRoleDirData = {
+  requestBody: RoleDirCreate
+}
+
+export type RoleDirsCreateRoleDirResponse = RoleDirPublic
+
+export type RoleDirsReadRoleDirByIdData = {
+  roleDirId: number
+}
+
+export type RoleDirsReadRoleDirByIdResponse = RoleDirPublic
+
+export type RoleDirsUpdateRoleDirData = {
+  requestBody: RoleDirUpdate
+  roleDirId: number
+}
+
+export type RoleDirsUpdateRoleDirResponse = RoleDirPublic
+
+export type RoleDirsDeleteRoleDirData = {
+  roleDirId: number
+}
+
+export type RoleDirsDeleteRoleDirResponse = Message
 
 export type UsersReadUsersData = {
   /**
