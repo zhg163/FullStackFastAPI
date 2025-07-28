@@ -83,7 +83,8 @@ def create_role_dir(*, session: SessionDep, role_dir_in: RoleDirCreate) -> Any:
             detail="The role directory with this IP name already exists in the system.",
         )
 
-    role_dir = RoleDir.model_validate(role_dir_in)
+    # 使用字典展开的方式创建实例，让数据库自动生成id和created_at
+    role_dir = RoleDir(**role_dir_in.model_dump())
     session.add(role_dir)
     session.commit()
     session.refresh(role_dir)
