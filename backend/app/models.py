@@ -115,6 +115,9 @@ class RoleDir(RoleDirBase, table=True):
     
     id: int = Field(primary_key=True)
     created_at: datetime | None = Field(default_factory=datetime.now)
+    
+    # 反向关系到roles
+    roles: list["Role"] = Relationship(back_populates="role_dir")
 
 
 # Properties to return via API
@@ -125,6 +128,50 @@ class RoleDirPublic(RoleDirBase):
 
 class RoleDirsPublic(SQLModel):
     data: list[RoleDirPublic]
+    count: int
+
+
+# Role models - 星图角色
+class RoleBase(SQLModel):
+    name: str = Field(min_length=1, max_length=60, description="角色名称")
+    create_from: str | None = Field(default=None, max_length=255, description="创建端")
+    has_prompts: str | None = Field(default=None, max_length=1, description="是否有提示词(Y/N)")
+
+
+# Properties to receive via API on creation
+class RoleCreate(RoleBase):
+    ip_id: int = Field(description="IP分类ID（关联roles_dir表）")
+
+
+# Properties to receive via API on update
+class RoleUpdate(RoleBase):
+    name: str | None = Field(default=None, min_length=1, max_length=60)  # type: ignore
+    ip_id: int | None = Field(default=None, description="IP分类ID（关联roles_dir表）")
+
+
+# Database model
+class Role(RoleBase, table=True):
+    __tablename__ = "roles"
+    
+    id: int = Field(primary_key=True)
+    created_at: datetime | None = Field(default_factory=datetime.now)
+    
+    # 外键关系到roles_dir
+    ip_id: int = Field(foreign_key="roles_dir.id", description="IP分类ID（关联roles_dir表）")
+    role_dir: RoleDir | None = Relationship(back_populates="roles")
+
+
+# Properties to return via API
+class RolePublic(RoleBase):
+    id: int
+    ip_id: int
+    created_at: datetime | None
+    # 包含关联的角色分类信息
+    role_dir: RoleDirPublic | None = None
+
+
+class RolesPublic(SQLModel):
+    data: list[RolePublic]
     count: int
 
 
