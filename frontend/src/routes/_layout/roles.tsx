@@ -1,8 +1,8 @@
-import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Stack, Grid, GridItem, Select } from "@chakra-ui/react"
+import React, { useState } from "react"
+import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Grid, GridItem } from "@chakra-ui/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
-import { useState } from "react"
 import { FiSearch, FiRefreshCcw } from "react-icons/fi"
 
 import { type RolePublic, RolesService, RoleDirsService } from "@/client"
@@ -131,21 +131,28 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
         
         <GridItem>
           <Field label="IP分类">
-            <Select
-              placeholder="选择IP分类"
-              value={ipId}
-              onChange={(e) => setIpId(e.target.value)}
-              bg="white"
-              borderColor="gray.300"
-              _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
-            >
-              {roleDirsData?.data.map((roleDir) => (
-                <option key={roleDir.id} value={roleDir.id}>
-                  {roleDir.ip}
-                </option>
-              ))}
-            </Select>
+            <Box>
+              <select
+                value={ipId}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIpId(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #E2E8F0",
+                  fontSize: "14px",
+                  backgroundColor: "white",
+                  cursor: "pointer"
+                }}
+              >
+                <option value="">选择IP分类</option>
+                {roleDirsData?.data.map((roleDir) => (
+                  <option key={roleDir.id} value={roleDir.id}>
+                    {roleDir.ip}
+                  </option>
+                ))}
+              </select>
+            </Box>
           </Field>
         </GridItem>
         
@@ -165,18 +172,25 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
         
         <GridItem>
           <Field label="是否有提示词">
-            <Select
-              placeholder="选择状态"
-              value={hasPrompts}
-              onChange={(e) => setHasPrompts(e.target.value)}
-              bg="white"
-              borderColor="gray.300"
-              _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
-            >
-              <option value="Y">是</option>
-              <option value="N">否</option>
-            </Select>
+            <Box>
+              <select
+                value={hasPrompts}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setHasPrompts(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #E2E8F0",
+                  fontSize: "14px",
+                  backgroundColor: "white",
+                  cursor: "pointer"
+                }}
+              >
+                <option value="">选择状态</option>
+                <option value="Y">是</option>
+                <option value="N">否</option>
+              </select>
+            </Box>
           </Field>
         </GridItem>
       </Grid>

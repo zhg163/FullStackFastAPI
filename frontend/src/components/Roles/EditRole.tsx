@@ -1,3 +1,4 @@
+import React, { useState } from "react"
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
@@ -9,8 +10,8 @@ import {
   Input,
   Text,
   VStack,
+  Box,
 } from "@chakra-ui/react"
-import { useState } from "react"
 import { FaEdit } from "react-icons/fa"
 
 import { type RolePublic, type RoleUpdate, RolesService, RoleDirsService } from "@/client"
@@ -136,21 +137,26 @@ const EditRole = ({ role }: EditRoleProps) => {
                 invalid={!!errors.ip_id}
                 errorText={errors.ip_id?.message}
               >
-                <select
-                  {...register("ip_id")}
-                  style={{ 
-                    padding: "8px", 
-                    borderRadius: "6px", 
-                    border: "1px solid #e2e8f0",
-                    width: "100%"
-                  }}
-                >
-                  {roleDirsData?.data.map((roleDir) => (
-                    <option key={roleDir.id} value={roleDir.id}>
-                      {roleDir.ip}
-                    </option>
-                  ))}
-                </select>
+                <Box>
+                  <select
+                    {...register("ip_id")}
+                    style={{ 
+                      padding: "8px 12px", 
+                      borderRadius: "6px", 
+                      border: "1px solid #e2e8f0",
+                      width: "100%",
+                      fontSize: "14px",
+                      backgroundColor: "white",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {roleDirsData?.data.map((roleDir) => (
+                      <option key={roleDir.id} value={roleDir.id}>
+                        {roleDir.ip}
+                      </option>
+                    ))}
+                  </select>
+                </Box>
               </Field>
               
               <Field
@@ -175,19 +181,24 @@ const EditRole = ({ role }: EditRoleProps) => {
                 invalid={!!errors.has_prompts}
                 errorText={errors.has_prompts?.message}
               >
-                <select
-                  {...register("has_prompts")}
-                  style={{ 
-                    padding: "8px", 
-                    borderRadius: "6px", 
-                    border: "1px solid #e2e8f0",
-                    width: "100%"
-                  }}
-                >
-                  <option value="">请选择</option>
-                  <option value="Y">是</option>
-                  <option value="N">否</option>
-                </select>
+                <Box>
+                  <select
+                    {...register("has_prompts")}
+                    style={{ 
+                      padding: "8px 12px", 
+                      borderRadius: "6px", 
+                      border: "1px solid #e2e8f0",
+                      width: "100%",
+                      fontSize: "14px",
+                      backgroundColor: "white",
+                      cursor: "pointer"
+                    }}
+                  >
+                    <option value="">请选择</option>
+                    <option value="Y">是</option>
+                    <option value="N">否</option>
+                  </select>
+                </Box>
               </Field>
             </VStack>
           </DialogBody>

@@ -1,3 +1,4 @@
+import React, { useState } from "react"
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
@@ -8,9 +9,8 @@ import {
   Input,
   Text,
   VStack,
-  Select,
+  Box,
 } from "@chakra-ui/react"
-import { useState } from "react"
 import { FaPlus } from "react-icons/fa"
 
 import { type RoleCreate, RolesService, RoleDirsService } from "@/client"
@@ -137,19 +137,30 @@ const AddRole = () => {
                 errorText={errors.ip_id?.message}
                 required
               >
-                <Select
-                  {...register("ip_id", {
-                    required: "请选择IP分类",
-                    validate: (value) => Number(value) > 0 || "请选择有效的IP分类"
-                  })}
-                  placeholder="请选择IP分类"
-                >
-                  {roleDirsData?.data.map((roleDir) => (
-                    <option key={roleDir.id} value={roleDir.id}>
-                      {roleDir.ip}
-                    </option>
-                  ))}
-                </Select>
+                <Box>
+                  <select
+                    {...register("ip_id", {
+                      required: "请选择IP分类",
+                      validate: (value) => Number(value) > 0 || "请选择有效的IP分类"
+                    })}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #E2E8F0",
+                      fontSize: "14px",
+                      backgroundColor: "white",
+                      cursor: "pointer"
+                    }}
+                  >
+                    <option value="">请选择IP分类</option>
+                    {roleDirsData?.data.map((roleDir) => (
+                      <option key={roleDir.id} value={roleDir.id}>
+                        {roleDir.ip}
+                      </option>
+                    ))}
+                  </select>
+                </Box>
               </Field>
               
               <Field
@@ -175,13 +186,24 @@ const AddRole = () => {
                 invalid={!!errors.has_prompts}
                 errorText={errors.has_prompts?.message}
               >
-                <Select
-                  {...register("has_prompts")}
-                  placeholder="请选择"
-                >
-                  <option value="Y">是</option>
-                  <option value="N">否</option>
-                </Select>
+                <Box>
+                  <select
+                    {...register("has_prompts")}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #E2E8F0",
+                      fontSize: "14px",
+                      backgroundColor: "white",
+                      cursor: "pointer"
+                    }}
+                  >
+                    <option value="">请选择</option>
+                    <option value="Y">是</option>
+                    <option value="N">否</option>
+                  </select>
+                </Box>
               </Field>
             </VStack>
           </DialogBody>
