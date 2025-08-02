@@ -12,7 +12,7 @@ import { routeTree } from "./routeTree.gen"
 import { ApiError, OpenAPI } from "./client"
 import { CustomProvider } from "./components/ui/provider"
 
-OpenAPI.BASE = import.meta.env.VITE_API_URL
+OpenAPI.BASE = (import.meta as any).env.VITE_API_URL || "http://localhost:8000"
 OpenAPI.TOKEN = async () => {
   return localStorage.getItem("access_token") || ""
 }
@@ -23,6 +23,7 @@ const handleApiError = (error: Error) => {
     window.location.href = "/login"
   }
 }
+
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: handleApiError,

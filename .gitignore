@@ -41,7 +41,11 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.bak
+*.md
+.gitignore
 
+alembic/
 # Virtual environments
 .venv/
 env/
@@ -49,6 +53,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
 
 # IDE
 .idea/

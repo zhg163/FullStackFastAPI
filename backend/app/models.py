@@ -3,6 +3,7 @@ from datetime import datetime
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy import Column, JSON
 
 
 # Shared properties
@@ -160,6 +161,8 @@ class Role(RoleBase, table=True):
     ip_id: int = Field(foreign_key="roles_dir.id", description="IP分类ID（关联roles_dir表）")
     role_dir: RoleDir | None = Relationship(back_populates="roles")
     templates: list["RoleTemplate"] = Relationship(back_populates="role")
+    prompts: list["RolePrompt"] = Relationship(back_populates="role")
+    task_prompts: list["TaskCreatRolePrompt"] = Relationship(back_populates="role")
 
 
 # Properties to return via API
@@ -252,4 +255,70 @@ class RoleTemplateItemPublic(RoleTemplateItemBase):
 
 class RoleTemplateItemsPublic(SQLModel):
     data: list[RoleTemplateItemPublic]
+    count: int
+
+# RolePrompt models - 角色提示词
+class RolePromptBase(SQLModel):
+    role_id: int = Field(description="角色ID（关联roles表）")
+    version: int = Field(description="版本号")
+    user_prompt: dict = Field(default={}, sa_column=Column(JSON), description="用户提示词内容（JSON格式）")
+    is_active: str | None = Field(default="Y", max_length=1, description="是否激活(Y/N)")
+
+class RolePromptCreate(RolePromptBase):
+    pass
+
+class RolePromptUpdate(RolePromptBase):
+    role_id: int | None = Field(default=None, description="角色ID（关联roles表）")
+    version: int | None = Field(default=None, description="版本号")
+    user_prompt: dict | None = Field(default=None, sa_column=Column(JSON), description="用户提示词内容（JSON格式）")
+
+class RolePrompt(RolePromptBase, table=True):
+    __tablename__ = "role_prompt"
+    id: int = Field(primary_key=True)
+    created_at: datetime | None = Field(default_factory=datetime.now)
+    
+    # 外键关系到roles
+    role_id: int = Field(foreign_key="roles.id", description="角色ID（关联roles表）")
+    role: Role | None = Relationship(back_populates="prompts")
+
+class RolePromptPublic(RolePromptBase):
+    id: int
+    created_at: datetime | None
+    role: RolePublic | None = None
+
+class RolePromptsPublic(SQLModel):
+    data: list[RolePromptPublic]
+    count: int
+
+# TaskCreatRolePrompt models - 角色创建提示词任务
+class TaskCreatRolePromptBase(SQLModel):
+    task_name: str | None = Field(default=None, max_length=255, description="任务名称")
+    task_state: str | None = Field(default=None, max_length=1, description="任务状态")
+    task_cmd: dict = Field(default={}, sa_column=Column(JSON), description="任务命令（JSON格式）")
+    role_id: int | None = Field(default=None, description="角色ID（关联roles表）")
+    role_item_prompt: dict = Field(default={}, sa_column=Column(JSON), description="角色条目提示词（JSON格式）")
+
+class TaskCreatRolePromptCreate(TaskCreatRolePromptBase):
+    task_name: str = Field(min_length=1, max_length=255, description="任务名称")
+    role_id: int = Field(description="角色ID（关联roles表）")
+
+class TaskCreatRolePromptUpdate(TaskCreatRolePromptBase):
+    task_name: str | None = Field(default=None, min_length=1, max_length=255, description="任务名称")
+
+class TaskCreatRolePrompt(TaskCreatRolePromptBase, table=True):
+    __tablename__ = "task_creat_role_prompt"
+    id: int = Field(primary_key=True)
+    created_at: datetime | None = Field(default_factory=datetime.now)
+    
+    # 外键关系到roles
+    role_id: int | None = Field(default=None, foreign_key="roles.id", description="角色ID（关联roles表）")
+    role: Role | None = Relationship(back_populates="task_prompts")
+
+class TaskCreatRolePromptPublic(TaskCreatRolePromptBase):
+    id: int
+    created_at: datetime | None
+    role: RolePublic | None = None
+
+class TaskCreatRolePromptsPublic(SQLModel):
+    data: list[TaskCreatRolePromptPublic]
     count: int

@@ -1,0 +1,288 @@
+import React, { useState } from "react"
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
+import { type SubmitHandler, useForm } from "react-hook-form"
+
+import {
+  Button,
+  DialogActionTrigger,
+  DialogTitle,
+  Input,
+  Text,
+  VStack,
+  Box,
+  Textarea,
+} from "@chakra-ui/react"
+import { FaEdit } from "react-icons/fa"
+
+import { type TaskCreatRolePromptPublic, type TaskCreatRolePromptUpdate, TaskCreatRolePromptsService, RolesService } from "@/client"
+import type { ApiError } from "@/client/core/ApiError"
+import useCustomToast from "@/hooks/useCustomToast"
+import { handleError } from "@/utils"
+import {
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogRoot,
+  DialogTrigger,
+} from "../ui/dialog"
+import { Field } from "../ui/field"
+import { MenuItem } from "../ui/menu"
+
+interface EditTaskCreatRolePromptProps {
+  task: TaskCreatRolePromptPublic
+}
+
+const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const queryClient = useQueryClient()
+  const { showSuccessToast } = useCustomToast()
+  
+  // 获取角色列表
+  const { data: rolesData } = useQuery({
+    queryKey: ["roles", "all"],
+    queryFn: () => RolesService.readRoles({ skip: 0, limit: 100 }),
+  })
+  
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<TaskCreatRolePromptUpdate>({
+    mode: "onBlur",
+    criteriaMode: "all",
+    defaultValues: {
+      task_name: task.task_name || "",
+      task_state: task.task_state || "",
+      role_id: task.role_id || undefined,
+    },
+  })
+
+  const [taskCmdText, setTaskCmdText] = useState(
+    JSON.stringify(task.task_cmd, null, 2) || ""
+  )
+  const [roleItemPromptText, setRoleItemPromptText] = useState(
+    JSON.stringify(task.role_item_prompt, null, 2) || ""
+  )
+
+  const mutation = useMutation({
+    mutationFn: (data: TaskCreatRolePromptUpdate) =>
+      TaskCreatRolePromptsService.updateTaskCreatRolePrompt({
+        taskPromptId: task.id,
+        requestBody: data,
+      }),
+    onSuccess: () => {
+      showSuccessToast("任务更新成功")
+      setIsOpen(false)
+    },
+    onError: (err: ApiError) => {
+      handleError(err)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-creat-role-prompts"] })
+    },
+  })
+
+  const onSubmit: SubmitHandler<TaskCreatRolePromptUpdate> = (data) => {
+    // 解析JSON字段
+    let taskCmd = {}
+    let roleItemPrompt = {}
+    
+    try {
+      taskCmd = taskCmdText ? JSON.parse(taskCmdText) : {}
+    } catch (error) {
+      taskCmd = { command: taskCmdText }
+    }
+    
+    try {
+      roleItemPrompt = roleItemPromptText ? JSON.parse(roleItemPromptText) : {}
+    } catch (error) {
+      roleItemPrompt = { content: roleItemPromptText }
+    }
+
+    const submitData: TaskCreatRolePromptUpdate = {
+      ...data,
+      role_id: data.role_id ? Number(data.role_id) : undefined,
+      task_cmd: taskCmd,
+      role_item_prompt: roleItemPrompt,
+    }
+    mutation.mutate(submitData)
+  }
+
+  const resetForm = () => {
+    reset({
+      task_name: task.task_name || "",
+      task_state: task.task_state || "",
+      role_id: task.role_id || undefined,
+    })
+    setTaskCmdText(JSON.stringify(task.task_cmd, null, 2) || "")
+    setRoleItemPromptText(JSON.stringify(task.role_item_prompt, null, 2) || "")
+  }
+
+  return (
+    <DialogRoot
+      open={isOpen}
+      onOpenChange={({ open }) => {
+        setIsOpen(open)
+        if (open) {
+          resetForm()
+        }
+      }}
+      size={{ base: "sm", md: "lg" }}
+      placement="center"
+    >
+      <DialogTrigger asChild>
+        <MenuItem value="edit" color="blue.600">
+          <FaEdit fontSize="16px" />
+          编辑任务
+        </MenuItem>
+      </DialogTrigger>
+      
+      <DialogContent>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogHeader>
+            <DialogTitle>编辑任务</DialogTitle>
+          </DialogHeader>
+          
+          <DialogBody>
+            <VStack gap={4}>
+              <Field
+                label="任务名称"
+                invalid={!!errors.task_name}
+                errorText={errors.task_name?.message}
+              >
+                <Input
+                  id="task_name"
+                  {...register("task_name", {
+                    maxLength: {
+                      value: 255,
+                      message: "任务名称不能超过255个字符",
+                    },
+                  })}
+                  placeholder="例如：初始化角色、生成提示词"
+                  type="text"
+                />
+              </Field>
+              
+              <Field
+                label="任务状态"
+                invalid={!!errors.task_state}
+                errorText={errors.task_state?.message}
+              >
+                <Box>
+                  <select
+                    {...register("task_state")}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #E2E8F0",
+                      fontSize: "14px",
+                      backgroundColor: "white",
+                      cursor: "pointer"
+                    }}
+                  >
+                    <option value="">不更改</option>
+                    <option value="P">进行中</option>
+                    <option value="W">等待中</option>
+                    <option value="C">已完成</option>
+                    <option value="F">失败</option>
+                  </select>
+                </Box>
+              </Field>
+
+              <Field
+                label="所属角色"
+                invalid={!!errors.role_id}
+                errorText={errors.role_id?.message}
+              >
+                <Box>
+                  <select
+                    {...register("role_id")}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #E2E8F0",
+                      fontSize: "14px",
+                      backgroundColor: "white",
+                      cursor: "pointer"
+                    }}
+                  >
+                    <option value="">不更改</option>
+                    {rolesData?.data.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name} - {role.role_dir?.ip}
+                      </option>
+                    ))}
+                  </select>
+                </Box>
+              </Field>
+              
+              <Field
+                label="任务命令"
+              >
+                <Textarea
+                  value={taskCmdText}
+                  onChange={(e) => setTaskCmdText(e.target.value)}
+                  placeholder='输入JSON格式的任务命令，例如：
+{
+  "command": "create_full_role",
+  "params": {"version": 1}
+}'
+                  rows={4}
+                  resize="vertical"
+                  fontFamily="monospace"
+                />
+                <Text fontSize="xs" color="gray.500" mt={1}>
+                  请输入有效的JSON格式，或者普通文本（将自动转换为JSON）
+                </Text>
+              </Field>
+              
+              <Field
+                label="角色条目提示词"
+              >
+                <Textarea
+                  value={roleItemPromptText}
+                  onChange={(e) => setRoleItemPromptText(e.target.value)}
+                  placeholder='输入JSON格式的角色条目提示词，例如：
+{
+  "prompt_type": "basic",
+  "category": "combat"
+}'
+                  rows={4}
+                  resize="vertical"
+                  fontFamily="monospace"
+                />
+                <Text fontSize="xs" color="gray.500" mt={1}>
+                  请输入有效的JSON格式，或者普通文本（将自动转换为JSON）
+                </Text>
+              </Field>
+            </VStack>
+          </DialogBody>
+          
+          <DialogFooter gap={2}>
+            <DialogActionTrigger asChild>
+              <Button variant="outline" disabled={isSubmitting}>
+                取消
+              </Button>
+            </DialogActionTrigger>
+            <Button
+              variant="solid"
+              colorScheme="blue"
+              type="submit"
+              loading={isSubmitting}
+            >
+              更新
+            </Button>
+          </DialogFooter>
+          <DialogCloseTrigger />
+        </form>
+      </DialogContent>
+    </DialogRoot>
+  )
+}
+
+export default EditTaskCreatRolePrompt 

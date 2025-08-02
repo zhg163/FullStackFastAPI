@@ -1,67 +1,172 @@
-import { Box, Flex, Icon, Text } from "@chakra-ui/react"
-import { useQueryClient } from "@tanstack/react-query"
-import { Link as RouterLink } from "@tanstack/react-router"
-import { FiBriefcase, FiHome, FiSettings, FiUsers, FiFolder, FiUser, FiLayers } from "react-icons/fi"
-import type { IconType } from "react-icons/lib"
+import { Badge, Flex, Icon, Text } from "@chakra-ui/react"
+import {
+  FiBriefcase,
+  FiHome,
+  FiSettings,
+  FiUsers,
+  FiList,
+  FiLayers,
+  FiMessageSquare,
+  FiClipboard,
+} from "react-icons/fi"
+import { Link } from "@tanstack/react-router"
 
-import type { UserPublic } from "@/client"
+import { type UserPublic } from "@/client"
 
 const items = [
-  { icon: FiHome, title: "Dashboard", path: "/" },
-  { icon: FiBriefcase, title: "Items", path: "/items" },
-  { icon: FiSettings, title: "User Settings", path: "/settings" },
+  { icon: FiHome, title: "首页", path: "/" },
+  { icon: FiBriefcase, title: "项目", path: "/items" },
+  { icon: FiSettings, title: "设置", path: "/settings" },
 ]
 
 interface SidebarItemsProps {
   onClose?: () => void
 }
 
-interface Item {
-  icon: IconType
-  title: string
-  path: string
-}
-
 const SidebarItems = ({ onClose }: SidebarItemsProps) => {
-  const queryClient = useQueryClient()
-  const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
-
-  const finalItems: Item[] = currentUser?.is_superuser
-    ? [
-        ...items, 
-        { icon: FiUsers, title: "Admin", path: "/admin" },
-        { icon: FiFolder, title: "角色分类", path: "/role-dirs" },
-        { icon: FiUser, title: "角色管理", path: "/roles" },
-        { icon: FiLayers, title: "角色模板", path: "/role-templates" }
-      ]
-    : items
-
-  const listItems = finalItems.map(({ icon, title, path }) => (
-    <RouterLink key={title} to={path} onClick={onClose}>
+  const listItems = items.map(({ icon, title, path }) => (
+    <Link key={title} to={path} style={{ textDecoration: "none" }}>
       <Flex
-        gap={4}
-        px={4}
-        py={2}
+        align="center"
+        p="4"
+        mx="4"
+        borderRadius="lg"
+        role="group"
+        cursor="pointer"
+        color="inherit"
         _hover={{
-          background: "gray.subtle",
+          bg: "gray.100",
+          color: "gray.900",
         }}
-        alignItems="center"
-        fontSize="sm"
+        onClick={onClose}
       >
-        <Icon as={icon} alignSelf="center" />
-        <Text ml={2}>{title}</Text>
+        <Icon
+          mr="4"
+          fontSize="16"
+          _groupHover={{
+            color: "gray.600",
+          }}
+          as={icon}
+        />
+        <Text fontWeight="medium">{title}</Text>
       </Flex>
-    </RouterLink>
+    </Link>
   ))
 
   return (
     <>
-      <Text fontSize="xs" px={4} py={2} fontWeight="bold">
-        Menu
-      </Text>
-      <Box>{listItems}</Box>
+      {listItems}
     </>
   )
 }
 
-export default SidebarItems
+// 超级用户专享功能
+const AdminItems = ({ onClose }: SidebarItemsProps) => {
+  const adminItems = [
+    { icon: FiUsers, title: "用户管理", path: "/admin" },
+    { icon: FiList, title: "角色分类", path: "/role-dirs" },
+    { icon: FiLayers, title: "角色管理", path: "/roles" },
+    { icon: FiList, title: "角色模板", path: "/role-templates" },
+    { icon: FiList, title: "模板条目", path: "/role-template-items" },
+    { icon: FiMessageSquare, title: "角色提示词", path: "/role-prompts" },
+    { icon: FiClipboard, title: "任务管理", path: "/task-creat-role-prompts" },
+  ]
+
+  const adminListItems = adminItems.map(({ icon, title, path }) => (
+    <Link key={title} to={path} style={{ textDecoration: "none" }}>
+      <Flex
+        align="center"
+        p="4"
+        mx="4"
+        borderRadius="lg"
+        role="group"
+        cursor="pointer"
+        color="inherit"
+        _hover={{
+          bg: "gray.100",
+          color: "gray.900",
+        }}
+        onClick={onClose}
+      >
+        <Icon
+          mr="4"
+          fontSize="16"
+          _groupHover={{
+            color: "gray.600",
+          }}
+          as={icon}
+        />
+        <Text fontWeight="medium">{title}</Text>
+      </Flex>
+    </Link>
+  ))
+
+  return (
+    <>
+      <Text fontSize="xs" fontWeight="bold" color="gray.400" letterSpacing="wide" mb={2} px={4}>
+        管理功能
+      </Text>
+      {adminListItems}
+    </>
+  )
+}
+
+interface UserMenuProps {
+  user?: UserPublic | null
+  onClose?: () => void
+}
+
+const UserMenu = ({ user, onClose }: UserMenuProps) => {
+  const finalItems = [
+    ...items,
+    ...(user?.is_superuser
+      ? [
+          { icon: FiUsers, title: "用户管理", path: "/admin" },
+          { icon: FiList, title: "角色分类", path: "/role-dirs" },
+          { icon: FiLayers, title: "角色管理", path: "/roles" },
+          { icon: FiList, title: "角色模板", path: "/role-templates" },
+          { icon: FiList, title: "模板条目", path: "/role-template-items" },
+          { icon: FiMessageSquare, title: "角色提示词", path: "/role-prompts" },
+          { icon: FiClipboard, title: "任务管理", path: "/task-creat-role-prompts" },
+        ]
+      : []),
+  ]
+
+  const listItems = finalItems.map(({ icon, title, path }) => (
+    <Link key={title} to={path} style={{ textDecoration: "none" }}>
+      <Flex
+        align="center"
+        p="4"
+        mx="4"
+        borderRadius="lg"
+        role="group"
+        cursor="pointer"
+        color="inherit"
+        _hover={{
+          bg: "gray.100",
+          color: "gray.900",
+        }}
+        onClick={onClose}
+      >
+        <Icon
+          mr="4"
+          fontSize="16"
+          _groupHover={{
+            color: "gray.600",
+          }}
+          as={icon}
+        />
+        <Text fontWeight="medium">{title}</Text>
+        {(path === "/admin" || path.startsWith("/role") || path.startsWith("/task")) && user?.is_superuser && (
+          <Badge ml="auto" size="sm" colorScheme="blue">
+            管理
+          </Badge>
+        )}
+      </Flex>
+    </Link>
+  ))
+
+  return <>{listItems}</>
+}
+
+export { AdminItems, SidebarItems, UserMenu }

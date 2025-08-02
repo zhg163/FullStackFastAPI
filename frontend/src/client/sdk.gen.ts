@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, RoleDirsReadRoleDirsData, RoleDirsReadRoleDirsResponse, RoleDirsCreateRoleDirData, RoleDirsCreateRoleDirResponse, RoleDirsReadRoleDirByIdData, RoleDirsReadRoleDirByIdResponse, RoleDirsUpdateRoleDirData, RoleDirsUpdateRoleDirResponse, RoleDirsDeleteRoleDirData, RoleDirsDeleteRoleDirResponse, RolesReadRolesData, RolesReadRolesResponse, RolesCreateRoleData, RolesCreateRoleResponse, RolesReadRoleByIdData, RolesReadRoleByIdResponse, RolesUpdateRoleData, RolesUpdateRoleResponse, RolesDeleteRoleData, RolesDeleteRoleResponse, RoleTemplateItemsReadRoleTemplateItemsData, RoleTemplateItemsReadRoleTemplateItemsResponse, RoleTemplateItemsCreateRoleTemplateItemData, RoleTemplateItemsCreateRoleTemplateItemResponse, RoleTemplateItemsReadRoleTemplateItemByIdData, RoleTemplateItemsReadRoleTemplateItemByIdResponse, RoleTemplateItemsUpdateRoleTemplateItemData, RoleTemplateItemsUpdateRoleTemplateItemResponse, RoleTemplateItemsDeleteRoleTemplateItemData, RoleTemplateItemsDeleteRoleTemplateItemResponse, RoleTemplatesReadRoleTemplatesData, RoleTemplatesReadRoleTemplatesResponse, RoleTemplatesCreateRoleTemplateData, RoleTemplatesCreateRoleTemplateResponse, RoleTemplatesReadRoleTemplateByIdData, RoleTemplatesReadRoleTemplateByIdResponse, RoleTemplatesUpdateRoleTemplateData, RoleTemplatesUpdateRoleTemplateResponse, RoleTemplatesDeleteRoleTemplateData, RoleTemplatesDeleteRoleTemplateResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, RoleDirsReadRoleDirsData, RoleDirsReadRoleDirsResponse, RoleDirsCreateRoleDirData, RoleDirsCreateRoleDirResponse, RoleDirsReadRoleDirByIdData, RoleDirsReadRoleDirByIdResponse, RoleDirsUpdateRoleDirData, RoleDirsUpdateRoleDirResponse, RoleDirsDeleteRoleDirData, RoleDirsDeleteRoleDirResponse, RolePromptsReadRolePromptsData, RolePromptsReadRolePromptsResponse, RolePromptsCreateRolePromptData, RolePromptsCreateRolePromptResponse, RolePromptsReadRolePromptByIdData, RolePromptsReadRolePromptByIdResponse, RolePromptsUpdateRolePromptData, RolePromptsUpdateRolePromptResponse, RolePromptsDeleteRolePromptData, RolePromptsDeleteRolePromptResponse, RolesReadRolesData, RolesReadRolesResponse, RolesCreateRoleData, RolesCreateRoleResponse, RolesReadRoleByIdData, RolesReadRoleByIdResponse, RolesUpdateRoleData, RolesUpdateRoleResponse, RolesDeleteRoleData, RolesDeleteRoleResponse, RoleTemplateItemsReadRoleTemplateItemsData, RoleTemplateItemsReadRoleTemplateItemsResponse, RoleTemplateItemsCreateRoleTemplateItemData, RoleTemplateItemsCreateRoleTemplateItemResponse, RoleTemplateItemsReadRoleTemplateItemByIdData, RoleTemplateItemsReadRoleTemplateItemByIdResponse, RoleTemplateItemsUpdateRoleTemplateItemData, RoleTemplateItemsUpdateRoleTemplateItemResponse, RoleTemplateItemsDeleteRoleTemplateItemData, RoleTemplateItemsDeleteRoleTemplateItemResponse, RoleTemplatesReadRoleTemplatesData, RoleTemplatesReadRoleTemplatesResponse, RoleTemplatesCreateRoleTemplateData, RoleTemplatesCreateRoleTemplateResponse, RoleTemplatesReadRoleTemplateByIdData, RoleTemplatesReadRoleTemplateByIdResponse, RoleTemplatesUpdateRoleTemplateData, RoleTemplatesUpdateRoleTemplateResponse, RoleTemplatesDeleteRoleTemplateData, RoleTemplatesDeleteRoleTemplateResponse, TaskCreatRolePromptsReadTaskCreatRolePromptsData, TaskCreatRolePromptsReadTaskCreatRolePromptsResponse, TaskCreatRolePromptsCreateTaskCreatRolePromptData, TaskCreatRolePromptsCreateTaskCreatRolePromptResponse, TaskCreatRolePromptsReadTaskCreatRolePromptByIdData, TaskCreatRolePromptsReadTaskCreatRolePromptByIdResponse, TaskCreatRolePromptsUpdateTaskCreatRolePromptData, TaskCreatRolePromptsUpdateTaskCreatRolePromptResponse, TaskCreatRolePromptsDeleteTaskCreatRolePromptData, TaskCreatRolePromptsDeleteTaskCreatRolePromptResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ItemsService {
     /**
@@ -345,6 +345,124 @@ export class RoleDirsService {
             url: '/api/v1/role-dirs/{role_dir_id}',
             path: {
                 role_dir_id: data.roleDirId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+}
+
+export class RolePromptsService {
+    /**
+     * Read Role Prompts
+     * 获取角色提示词列表
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @param data.roleId 角色ID筛选
+     * @param data.version 版本号筛选
+     * @param data.isActive 激活状态筛选(Y/N)
+     * @returns RolePromptsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readRolePrompts(data: RolePromptsReadRolePromptsData = {}): CancelablePromise<RolePromptsReadRolePromptsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/role-prompts/',
+            query: {
+                skip: data.skip,
+                limit: data.limit,
+                role_id: data.roleId,
+                version: data.version,
+                is_active: data.isActive
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Role Prompt
+     * 创建角色提示词
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RolePromptPublic Successful Response
+     * @throws ApiError
+     */
+    public static createRolePrompt(data: RolePromptsCreateRolePromptData): CancelablePromise<RolePromptsCreateRolePromptResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/role-prompts/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Role Prompt By Id
+     * 根据ID获取角色提示词
+     * @param data The data for the request.
+     * @param data.rolePromptId
+     * @returns RolePromptPublic Successful Response
+     * @throws ApiError
+     */
+    public static readRolePromptById(data: RolePromptsReadRolePromptByIdData): CancelablePromise<RolePromptsReadRolePromptByIdResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/role-prompts/{role_prompt_id}',
+            path: {
+                role_prompt_id: data.rolePromptId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Role Prompt
+     * 更新角色提示词
+     * @param data The data for the request.
+     * @param data.rolePromptId
+     * @param data.requestBody
+     * @returns RolePromptPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateRolePrompt(data: RolePromptsUpdateRolePromptData): CancelablePromise<RolePromptsUpdateRolePromptResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/role-prompts/{role_prompt_id}',
+            path: {
+                role_prompt_id: data.rolePromptId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Role Prompt
+     * 删除角色提示词
+     * @param data The data for the request.
+     * @param data.rolePromptId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static deleteRolePrompt(data: RolePromptsDeleteRolePromptData): CancelablePromise<RolePromptsDeleteRolePromptResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/role-prompts/{role_prompt_id}',
+            path: {
+                role_prompt_id: data.rolePromptId
             },
             errors: {
                 422: 'Validation Error'
@@ -699,6 +817,124 @@ export class RoleTemplatesService {
             url: '/api/v1/role-templates/{role_template_id}',
             path: {
                 role_template_id: data.roleTemplateId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+}
+
+export class TaskCreatRolePromptsService {
+    /**
+     * Read Task Creat Role Prompts
+     * 获取角色创建提示词任务列表
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @param data.taskName 任务名称筛选
+     * @param data.taskState 任务状态筛选
+     * @param data.roleId 角色ID筛选
+     * @returns TaskCreatRolePromptsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readTaskCreatRolePrompts(data: TaskCreatRolePromptsReadTaskCreatRolePromptsData = {}): CancelablePromise<TaskCreatRolePromptsReadTaskCreatRolePromptsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/task-creat-role-prompts/',
+            query: {
+                skip: data.skip,
+                limit: data.limit,
+                task_name: data.taskName,
+                task_state: data.taskState,
+                role_id: data.roleId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Task Creat Role Prompt
+     * 创建角色创建提示词任务
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns TaskCreatRolePromptPublic Successful Response
+     * @throws ApiError
+     */
+    public static createTaskCreatRolePrompt(data: TaskCreatRolePromptsCreateTaskCreatRolePromptData): CancelablePromise<TaskCreatRolePromptsCreateTaskCreatRolePromptResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/task-creat-role-prompts/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Task Creat Role Prompt By Id
+     * 根据ID获取角色创建提示词任务
+     * @param data The data for the request.
+     * @param data.taskPromptId
+     * @returns TaskCreatRolePromptPublic Successful Response
+     * @throws ApiError
+     */
+    public static readTaskCreatRolePromptById(data: TaskCreatRolePromptsReadTaskCreatRolePromptByIdData): CancelablePromise<TaskCreatRolePromptsReadTaskCreatRolePromptByIdResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/task-creat-role-prompts/{task_prompt_id}',
+            path: {
+                task_prompt_id: data.taskPromptId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Task Creat Role Prompt
+     * 更新角色创建提示词任务
+     * @param data The data for the request.
+     * @param data.taskPromptId
+     * @param data.requestBody
+     * @returns TaskCreatRolePromptPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateTaskCreatRolePrompt(data: TaskCreatRolePromptsUpdateTaskCreatRolePromptData): CancelablePromise<TaskCreatRolePromptsUpdateTaskCreatRolePromptResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/task-creat-role-prompts/{task_prompt_id}',
+            path: {
+                task_prompt_id: data.taskPromptId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Task Creat Role Prompt
+     * 删除角色创建提示词任务
+     * @param data The data for the request.
+     * @param data.taskPromptId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static deleteTaskCreatRolePrompt(data: TaskCreatRolePromptsDeleteTaskCreatRolePromptData): CancelablePromise<TaskCreatRolePromptsDeleteTaskCreatRolePromptResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/task-creat-role-prompts/{task_prompt_id}',
+            path: {
+                task_prompt_id: data.taskPromptId
             },
             errors: {
                 422: 'Validation Error'

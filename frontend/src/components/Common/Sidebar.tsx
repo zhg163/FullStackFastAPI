@@ -14,7 +14,7 @@ import {
   DrawerRoot,
   DrawerTrigger,
 } from "../ui/drawer"
-import SidebarItems from "./SidebarItems"
+import { SidebarItems, AdminItems } from "./SidebarItems"
 
 const Sidebar = () => {
   const queryClient = useQueryClient()
@@ -49,7 +49,17 @@ const Sidebar = () => {
           <DrawerBody>
             <Flex flexDir="column" justify="space-between">
               <Box>
+                {/* 基础导航 */}
                 <SidebarItems onClose={() => setOpen(false)} />
+                
+                {/* 管理功能（仅超级用户可见） */}
+                {currentUser?.is_superuser && (
+                  <Box mt={4}>
+                    <AdminItems onClose={() => setOpen(false)} />
+                  </Box>
+                )}
+                
+                {/* 退出登录 */}
                 <Flex
                   as="button"
                   onClick={() => {
@@ -59,6 +69,7 @@ const Sidebar = () => {
                   gap={4}
                   px={4}
                   py={2}
+                  mt={4}
                 >
                   <FiLogOut />
                   <Text>Log Out</Text>
@@ -86,9 +97,17 @@ const Sidebar = () => {
         h="100vh"
         p={4}
       >
-        <Box w="100%">
+        <Flex w="100%" direction="column">
+          {/* 基础导航 */}
           <SidebarItems />
-        </Box>
+          
+          {/* 管理功能（仅超级用户可见） */}
+          {currentUser?.is_superuser && (
+            <Box mt={4}>
+              <AdminItems />
+            </Box>
+          )}
+        </Flex>
       </Box>
     </>
   )

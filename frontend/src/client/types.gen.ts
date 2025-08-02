@@ -107,6 +107,77 @@ export type RoleDirUpdate = {
     ip_desc?: (string | null);
 };
 
+export type RolePromptCreate = {
+    /**
+     * 角色ID（关联roles表）
+     */
+    role_id: number;
+    /**
+     * 版本号
+     */
+    version: number;
+    /**
+     * 用户提示词内容（JSON格式）
+     */
+    user_prompt?: {
+        [key: string]: unknown;
+    };
+    /**
+     * 是否激活(Y/N)
+     */
+    is_active?: (string | null);
+};
+
+export type RolePromptPublic = {
+    /**
+     * 角色ID（关联roles表）
+     */
+    role_id: number;
+    /**
+     * 版本号
+     */
+    version: number;
+    /**
+     * 用户提示词内容（JSON格式）
+     */
+    user_prompt?: {
+        [key: string]: unknown;
+    };
+    /**
+     * 是否激活(Y/N)
+     */
+    is_active?: (string | null);
+    id: number;
+    created_at: (string | null);
+    role?: (RolePublic | null);
+};
+
+export type RolePromptsPublic = {
+    data: Array<RolePromptPublic>;
+    count: number;
+};
+
+export type RolePromptUpdate = {
+    /**
+     * 角色ID（关联roles表）
+     */
+    role_id?: (number | null);
+    /**
+     * 版本号
+     */
+    version?: (number | null);
+    /**
+     * 用户提示词内容（JSON格式）
+     */
+    user_prompt?: ({
+    [key: string]: unknown;
+} | null);
+    /**
+     * 是否激活(Y/N)
+     */
+    is_active?: (string | null);
+};
+
 export type RolePublic = {
     /**
      * 角色名称
@@ -245,6 +316,95 @@ export type RoleUpdate = {
      * IP分类ID（关联roles_dir表）
      */
     ip_id?: (number | null);
+};
+
+export type TaskCreatRolePromptCreate = {
+    /**
+     * 任务名称
+     */
+    task_name: string;
+    /**
+     * 任务状态
+     */
+    task_state?: (string | null);
+    /**
+     * 任务命令（JSON格式）
+     */
+    task_cmd?: {
+        [key: string]: unknown;
+    };
+    /**
+     * 角色ID（关联roles表）
+     */
+    role_id: number;
+    /**
+     * 角色条目提示词（JSON格式）
+     */
+    role_item_prompt?: {
+        [key: string]: unknown;
+    };
+};
+
+export type TaskCreatRolePromptPublic = {
+    /**
+     * 任务名称
+     */
+    task_name?: (string | null);
+    /**
+     * 任务状态
+     */
+    task_state?: (string | null);
+    /**
+     * 任务命令（JSON格式）
+     */
+    task_cmd?: {
+        [key: string]: unknown;
+    };
+    /**
+     * 角色ID（关联roles表）
+     */
+    role_id?: (number | null);
+    /**
+     * 角色条目提示词（JSON格式）
+     */
+    role_item_prompt?: {
+        [key: string]: unknown;
+    };
+    id: number;
+    created_at: (string | null);
+    role?: (RolePublic | null);
+};
+
+export type TaskCreatRolePromptsPublic = {
+    data: Array<TaskCreatRolePromptPublic>;
+    count: number;
+};
+
+export type TaskCreatRolePromptUpdate = {
+    /**
+     * 任务名称
+     */
+    task_name?: (string | null);
+    /**
+     * 任务状态
+     */
+    task_state?: (string | null);
+    /**
+     * 任务命令（JSON格式）
+     */
+    task_cmd?: {
+        [key: string]: unknown;
+    };
+    /**
+     * 角色ID（关联roles表）
+     */
+    role_id?: (number | null);
+    /**
+     * 角色条目提示词（JSON格式）
+     */
+    role_item_prompt?: {
+        [key: string]: unknown;
+    };
 };
 
 export type Token = {
@@ -407,6 +567,50 @@ export type RoleDirsDeleteRoleDirData = {
 
 export type RoleDirsDeleteRoleDirResponse = (Message);
 
+export type RolePromptsReadRolePromptsData = {
+    /**
+     * 激活状态筛选(Y/N)
+     */
+    isActive?: (string | null);
+    limit?: number;
+    /**
+     * 角色ID筛选
+     */
+    roleId?: (number | null);
+    skip?: number;
+    /**
+     * 版本号筛选
+     */
+    version?: (number | null);
+};
+
+export type RolePromptsReadRolePromptsResponse = (RolePromptsPublic);
+
+export type RolePromptsCreateRolePromptData = {
+    requestBody: RolePromptCreate;
+};
+
+export type RolePromptsCreateRolePromptResponse = (RolePromptPublic);
+
+export type RolePromptsReadRolePromptByIdData = {
+    rolePromptId: number;
+};
+
+export type RolePromptsReadRolePromptByIdResponse = (RolePromptPublic);
+
+export type RolePromptsUpdateRolePromptData = {
+    requestBody: RolePromptUpdate;
+    rolePromptId: number;
+};
+
+export type RolePromptsUpdateRolePromptResponse = (RolePromptPublic);
+
+export type RolePromptsDeleteRolePromptData = {
+    rolePromptId: number;
+};
+
+export type RolePromptsDeleteRolePromptResponse = (unknown);
+
 export type RolesReadRolesData = {
     /**
      * 搜索创建端（模糊匹配）
@@ -538,6 +742,50 @@ export type RoleTemplatesDeleteRoleTemplateData = {
 };
 
 export type RoleTemplatesDeleteRoleTemplateResponse = (Message);
+
+export type TaskCreatRolePromptsReadTaskCreatRolePromptsData = {
+    limit?: number;
+    /**
+     * 角色ID筛选
+     */
+    roleId?: (number | null);
+    skip?: number;
+    /**
+     * 任务名称筛选
+     */
+    taskName?: (string | null);
+    /**
+     * 任务状态筛选
+     */
+    taskState?: (string | null);
+};
+
+export type TaskCreatRolePromptsReadTaskCreatRolePromptsResponse = (TaskCreatRolePromptsPublic);
+
+export type TaskCreatRolePromptsCreateTaskCreatRolePromptData = {
+    requestBody: TaskCreatRolePromptCreate;
+};
+
+export type TaskCreatRolePromptsCreateTaskCreatRolePromptResponse = (TaskCreatRolePromptPublic);
+
+export type TaskCreatRolePromptsReadTaskCreatRolePromptByIdData = {
+    taskPromptId: number;
+};
+
+export type TaskCreatRolePromptsReadTaskCreatRolePromptByIdResponse = (TaskCreatRolePromptPublic);
+
+export type TaskCreatRolePromptsUpdateTaskCreatRolePromptData = {
+    requestBody: TaskCreatRolePromptUpdate;
+    taskPromptId: number;
+};
+
+export type TaskCreatRolePromptsUpdateTaskCreatRolePromptResponse = (TaskCreatRolePromptPublic);
+
+export type TaskCreatRolePromptsDeleteTaskCreatRolePromptData = {
+    taskPromptId: number;
+};
+
+export type TaskCreatRolePromptsDeleteTaskCreatRolePromptResponse = (unknown);
 
 export type UsersReadUsersData = {
     /**
