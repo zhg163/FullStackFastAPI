@@ -1,0 +1,156 @@
+import { Box, Container, Heading, VStack } from "@chakra-ui/react"
+import { createFileRoute } from "@tanstack/react-router"
+import React, { useState } from "react"
+
+import ContentConfirmation from "@/components/BatchPromptGeneration/ContentConfirmation"
+import RoleSelection from "@/components/BatchPromptGeneration/RoleSelection"
+import StepNavigation from "@/components/BatchPromptGeneration/StepNavigation"
+import TaskBasicInfo from "@/components/BatchPromptGeneration/TaskBasicInfo"
+import TaskCreationConfirm from "@/components/BatchPromptGeneration/TaskCreationConfirm"
+
+export const Route = createFileRoute("/_layout/batch-prompt-generation")({
+  component: BatchPromptGeneration,
+})
+
+interface StepInfo {
+  id: number
+  title: string
+  description: string
+}
+
+interface BatchGenerationTaskData {
+  // 基础信息
+  taskName: string
+  taskDescription?: string
+  generationStrategy: "ai" | "template" | "hybrid"
+
+  // 选中的角色
+  selectedRoles: Array<{
+    id: number
+    name: string
+    ip_name: string
+    templates: Array<{
+      id: number
+      template_name: string
+      items: Array<{
+        id: number
+        item_name: string
+        item_prompt_desc: string
+        selected: boolean
+      }>
+    }>
+  }>
+
+  // 生成选项
+  options: {
+    parallelGeneration: boolean
+    autoActivate: boolean
+    sendNotification: boolean
+  }
+}
+
+const steps: StepInfo[] = [
+  { id: 1, title: "任务基础信息", description: "设置任务名称和生成策略" },
+  { id: 2, title: "选择角色", description: "选择要生成提示词的角色" },
+  { id: 3, title: "确认生成内容", description: "确认要生成的模板条目" },
+  { id: 4, title: "任务创建确认", description: "确认并创建批量生成任务" },
+]
+
+function BatchPromptGeneration() {
+  const [currentStep, setCurrentStep] = useState(1)
+  const [taskData, setTaskData] = useState<BatchGenerationTaskData>({
+    taskName: "",
+    taskDescription: "",
+    generationStrategy: "ai",
+    selectedRoles: [],
+    options: {
+      parallelGeneration: false,
+      autoActivate: false,
+      sendNotification: true,
+    },
+  })
+
+  const handleStepChange = (step: number) => {
+    if (step <= currentStep + 1 && step >= 1) {
+      setCurrentStep(step)
+    }
+  }
+
+  const handleNext = () => {
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const updateTaskData = (updates: Partial<BatchGenerationTaskData>) => {
+    setTaskData((prev) => ({ ...prev, ...updates }))
+  }
+
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <TaskBasicInfo
+            data={{
+              taskName: taskData.taskName,
+              taskDescription: taskData.taskDescription,
+              generationStrategy: taskData.generationStrategy,
+            }}
+            onUpdate={(data) => updateTaskData(data)}
+            onNext={handleNext}
+          />
+        )
+      case 2:
+        return (
+          <RoleSelection
+            selectedRoles={taskData.selectedRoles}
+            onUpdate={(selectedRoles) => updateTaskData({ selectedRoles })}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+          />
+        )
+      case 3:
+        return (
+          <ContentConfirmation
+            taskData={taskData}
+            onUpdate={updateTaskData}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+          />
+        )
+      case 4:
+        return (
+          <TaskCreationConfirm
+            taskData={taskData}
+            onPrevious={handlePrevious}
+          />
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <Container maxW="6xl" p={6}>
+      <VStack spacing={8} align="stretch">
+        <Heading size="lg" textAlign="center" color="gray.800">
+          🚀 创建批量生成提示词任务
+        </Heading>
+
+        <StepNavigation
+          currentStep={currentStep}
+          steps={steps}
+          onStepChange={handleStepChange}
+        />
+
+        <Box minH="600px">{renderCurrentStep()}</Box>
+      </VStack>
+    </Container>
+  )
+}

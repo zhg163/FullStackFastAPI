@@ -1,21 +1,37 @@
-import React, { useState } from "react"
-import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Grid, GridItem } from "@chakra-ui/react"
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  Input,
+  Table,
+} from "@chakra-ui/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import type React from "react"
+import { useState } from "react"
+import { FiRefreshCcw, FiSearch } from "react-icons/fi"
 import { z } from "zod"
-import { FiSearch, FiRefreshCcw } from "react-icons/fi"
 
-import { type RoleTemplatePublic, RoleTemplatesService, RolesService } from "@/client"
-import AddRoleTemplate from "@/components/RoleTemplates/AddRoleTemplate"
+import {
+  type RoleTemplatePublic,
+  RoleTemplatesService,
+  RolesService,
+} from "@/client"
 import { RoleTemplateActionsMenu } from "@/components/Common/RoleTemplateActionsMenu"
 import PendingRoleTemplates from "@/components/Pending/PendingRoleTemplates"
+import AddRoleTemplate from "@/components/RoleTemplates/AddRoleTemplate"
+import { Field } from "@/components/ui/field"
 import {
   PaginationItems,
   PaginationNextTrigger,
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination.tsx"
-import { Field } from "@/components/ui/field"
 
 const roleTemplatesSearchSchema = z.object({
   page: z.number().catch(1),
@@ -26,12 +42,12 @@ const roleTemplatesSearchSchema = z.object({
 
 const PER_PAGE = 5
 
-function getRoleTemplatesQueryOptions({ 
-  page, 
-  template_name, 
+function getRoleTemplatesQueryOptions({
+  page,
+  template_name,
   role_id,
-  is_active
-}: { 
+  is_active,
+}: {
   page: number
   template_name?: string
   role_id?: number
@@ -41,7 +57,7 @@ function getRoleTemplatesQueryOptions({
     skip: (page - 1) * PER_PAGE,
     limit: PER_PAGE,
   }
-  
+
   if (template_name) params.templateName = template_name
   if (role_id) params.roleId = role_id
   if (is_active) params.isActive = is_active
@@ -80,9 +96,9 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
   const handleSearch = () => {
     const filters: any = {}
     if (templateName.trim()) filters.template_name = templateName.trim()
-    if (roleId.trim()) filters.role_id = parseInt(roleId.trim())
+    if (roleId.trim()) filters.role_id = Number.parseInt(roleId.trim())
     if (isActive) filters.is_active = isActive
-    
+
     console.log("搜索条件:", filters)
     onSearch(filters)
   }
@@ -96,15 +112,17 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
 
   return (
     <Box p={6} bg="gray.50" borderRadius="lg" mb={6} shadow="sm">
-      <Heading size="md" mb={4} color="gray.700">搜索条件</Heading>
-      
-      <Grid 
-        templateColumns={{ 
-          base: "1fr", 
-          md: "repeat(2, 1fr)", 
-          lg: "repeat(3, 1fr)" 
-        }} 
-        gap={4} 
+      <Heading size="md" mb={4} color="gray.700">
+        搜索条件
+      </Heading>
+
+      <Grid
+        templateColumns={{
+          base: "1fr",
+          md: "repeat(2, 1fr)",
+          lg: "repeat(3, 1fr)",
+        }}
+        gap={4}
         mb={4}
       >
         <GridItem>
@@ -116,17 +134,22 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
             />
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="关联角色">
             <Box>
               <select
                 value={roleId}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRoleId(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setRoleId(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -134,7 +157,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">选择角色</option>
@@ -147,13 +170,15 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
             </Box>
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="激活状态">
             <Box>
               <select
                 value={isActive}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIsActive(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setIsActive(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -161,7 +186,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">选择状态</option>
@@ -172,7 +197,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           </Field>
         </GridItem>
       </Grid>
-      
+
       <Flex gap={3} justify={{ base: "center", md: "flex-start" }}>
         <Button
           colorScheme="blue"
@@ -183,12 +208,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           <FiSearch style={{ marginRight: "6px" }} />
           搜索
         </Button>
-        <Button
-          variant="outline"
-          onClick={handleReset}
-          size="md"
-          minW="100px"
-        >
+        <Button variant="outline" onClick={handleReset} size="md" minW="100px">
           <FiRefreshCcw style={{ marginRight: "6px" }} />
           重置
         </Button>
@@ -204,7 +224,12 @@ function RoleTemplatesTable() {
   const { page, template_name, role_id, is_active } = searchParams
 
   const { data, isLoading, isPlaceholderData } = useQuery({
-    ...getRoleTemplatesQueryOptions({ page, template_name, role_id, is_active }),
+    ...getRoleTemplatesQueryOptions({
+      page,
+      template_name,
+      role_id,
+      is_active,
+    }),
     placeholderData: (prevData) => prevData,
   })
 
@@ -249,21 +274,37 @@ function RoleTemplatesTable() {
   return (
     <>
       <SearchForm onSearch={handleSearch} onReset={handleReset} />
-      
+
       <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
           <Table.Row bg="gray.50">
-            <Table.ColumnHeader w="sm" fontWeight="bold">ID</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">模板名称</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">关联角色</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">激活状态</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">创建时间</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">操作</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              ID
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              模板名称
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              关联角色
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              激活状态
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              创建时间
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              操作
+            </Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {roleTemplates?.map((template) => (
-            <Table.Row key={template.id} opacity={isPlaceholderData ? 0.5 : 1} _hover={{ bg: "gray.50" }}>
+            <Table.Row
+              key={template.id}
+              opacity={isPlaceholderData ? 0.5 : 1}
+              _hover={{ bg: "gray.50" }}
+            >
               <Table.Cell>
                 <Badge colorScheme="blue">{template.id}</Badge>
               </Table.Cell>
@@ -274,18 +315,27 @@ function RoleTemplatesTable() {
                 {template.role?.name || `ID:${template.role_id}`}
               </Table.Cell>
               <Table.Cell>
-                <Badge 
-                  colorScheme={template.is_active === "Y" ? "green" : template.is_active === "N" ? "red" : "gray"}
+                <Badge
+                  colorScheme={
+                    template.is_active === "Y"
+                      ? "green"
+                      : template.is_active === "N"
+                        ? "red"
+                        : "gray"
+                  }
                   variant="subtle"
                 >
-                  {template.is_active === "Y" ? "激活" : template.is_active === "N" ? "未激活" : "未知"}
+                  {template.is_active === "Y"
+                    ? "激活"
+                    : template.is_active === "N"
+                      ? "未激活"
+                      : "未知"}
                 </Badge>
               </Table.Cell>
               <Table.Cell>
-                {template.created_at 
-                  ? new Date(template.created_at).toLocaleString('zh-CN')
-                  : "未知"
-                }
+                {template.created_at
+                  ? new Date(template.created_at).toLocaleString("zh-CN")
+                  : "未知"}
               </Table.Cell>
               <Table.Cell>
                 <RoleTemplateActionsMenu template={template} />
@@ -294,7 +344,7 @@ function RoleTemplatesTable() {
           ))}
         </Table.Body>
       </Table.Root>
-      
+
       {count > 0 && (
         <Flex justifyContent="flex-end" mt={4}>
           <PaginationRoot
@@ -310,10 +360,19 @@ function RoleTemplatesTable() {
           </PaginationRoot>
         </Flex>
       )}
-      
+
       {count === 0 && (
-        <Box textAlign="center" py={8} color="gray.500" bg="white" borderRadius="md" shadow="sm">
-          {template_name || role_id || is_active ? "未找到匹配的角色模板" : "暂无角色模板数据"}
+        <Box
+          textAlign="center"
+          py={8}
+          color="gray.500"
+          bg="white"
+          borderRadius="md"
+          shadow="sm"
+        >
+          {template_name || role_id || is_active
+            ? "未找到匹配的角色模板"
+            : "暂无角色模板数据"}
         </Box>
       )}
     </>
@@ -331,4 +390,4 @@ function RoleTemplates() {
       <RoleTemplatesTable />
     </Container>
   )
-} 
+}

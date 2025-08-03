@@ -1,20 +1,24 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import React, { useState } from "react"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import {
+  Box,
   Button,
   DialogActionTrigger,
   DialogTitle,
   Input,
   Text,
-  VStack,
-  Box,
   Textarea,
+  VStack,
 } from "@chakra-ui/react"
 import { FaPlus } from "react-icons/fa"
 
-import { type TaskCreatRolePromptCreate, TaskCreatRolePromptsService, RolesService } from "@/client"
+import {
+  RolesService,
+  type TaskCreatRolePromptCreate,
+  TaskCreatRolePromptsService,
+} from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -33,13 +37,13 @@ const AddTaskCreatRolePrompt = () => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
-  
+
   // 获取角色列表
   const { data: rolesData } = useQuery({
     queryKey: ["roles", "all"],
     queryFn: () => RolesService.readRoles({ skip: 0, limit: 100 }),
   })
-  
+
   const {
     register,
     handleSubmit,
@@ -64,7 +68,9 @@ const AddTaskCreatRolePrompt = () => {
 
   const mutation = useMutation({
     mutationFn: (data: TaskCreatRolePromptCreate) =>
-      TaskCreatRolePromptsService.createTaskCreatRolePrompt({ requestBody: data }),
+      TaskCreatRolePromptsService.createTaskCreatRolePrompt({
+        requestBody: data,
+      }),
     onSuccess: () => {
       showSuccessToast("任务创建成功")
       reset()
@@ -84,13 +90,13 @@ const AddTaskCreatRolePrompt = () => {
     // 解析JSON字段
     let taskCmd = {}
     let roleItemPrompt = {}
-    
+
     try {
       taskCmd = taskCmdText ? JSON.parse(taskCmdText) : {}
     } catch (error) {
       taskCmd = { command: taskCmdText }
     }
-    
+
     try {
       roleItemPrompt = roleItemPromptText ? JSON.parse(roleItemPromptText) : {}
     } catch (error) {
@@ -114,23 +120,18 @@ const AddTaskCreatRolePrompt = () => {
       placement="center"
     >
       <DialogTrigger asChild>
-        <Button
-          variant="solid"
-          colorScheme="teal"
-          size="md"
-          mb={4}
-        >
+        <Button variant="solid" colorScheme="teal" size="md" mb={4}>
           <FaPlus fontSize="16px" />
           添加任务
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>添加任务</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -156,7 +157,7 @@ const AddTaskCreatRolePrompt = () => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="任务状态"
                 invalid={!!errors.task_state}
@@ -172,7 +173,7 @@ const AddTaskCreatRolePrompt = () => {
                       border: "1px solid #E2E8F0",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="P">进行中</option>
@@ -193,7 +194,8 @@ const AddTaskCreatRolePrompt = () => {
                   <select
                     {...register("role_id", {
                       required: "请选择角色",
-                      validate: (value) => Number(value) > 0 || "请选择有效的角色"
+                      validate: (value) =>
+                        Number(value) > 0 || "请选择有效的角色",
                     })}
                     style={{
                       width: "100%",
@@ -202,7 +204,7 @@ const AddTaskCreatRolePrompt = () => {
                       border: "1px solid #E2E8F0",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">请选择角色</option>
@@ -214,7 +216,7 @@ const AddTaskCreatRolePrompt = () => {
                   </select>
                 </Box>
               </Field>
-              
+
               <Field
                 label="任务命令"
                 invalid={!!taskCmdText && taskCmdText.length === 0}
@@ -237,10 +239,12 @@ const AddTaskCreatRolePrompt = () => {
                   请输入有效的JSON格式，或者普通文本（将自动转换为JSON）
                 </Text>
               </Field>
-              
+
               <Field
                 label="角色条目提示词"
-                invalid={!!roleItemPromptText && roleItemPromptText.length === 0}
+                invalid={
+                  !!roleItemPromptText && roleItemPromptText.length === 0
+                }
                 errorText="角色条目提示词不能为空"
                 required
               >
@@ -262,7 +266,7 @@ const AddTaskCreatRolePrompt = () => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -274,7 +278,9 @@ const AddTaskCreatRolePrompt = () => {
               colorScheme="teal"
               type="submit"
               loading={isSubmitting}
-              disabled={!isValid || !taskCmdText.trim() || !roleItemPromptText.trim()}
+              disabled={
+                !isValid || !taskCmdText.trim() || !roleItemPromptText.trim()
+              }
             >
               添加
             </Button>
@@ -286,4 +292,4 @@ const AddTaskCreatRolePrompt = () => {
   )
 }
 
-export default AddTaskCreatRolePrompt 
+export default AddTaskCreatRolePrompt

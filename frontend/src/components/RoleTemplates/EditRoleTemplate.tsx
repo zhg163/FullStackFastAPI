@@ -1,8 +1,9 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import React, { useState } from "react"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import {
+  Box,
   Button,
   DialogActionTrigger,
   DialogRoot,
@@ -10,11 +11,15 @@ import {
   Input,
   Text,
   VStack,
-  Box,
 } from "@chakra-ui/react"
 import { FaEdit } from "react-icons/fa"
 
-import { type RoleTemplatePublic, type RoleTemplateUpdate, RoleTemplatesService, RolesService } from "@/client"
+import {
+  type RoleTemplatePublic,
+  type RoleTemplateUpdate,
+  RoleTemplatesService,
+  RolesService,
+} from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -36,13 +41,13 @@ const EditRoleTemplate = ({ template }: EditRoleTemplateProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
-  
+
   // 获取角色列表
   const { data: rolesData } = useQuery({
     queryKey: ["roles", "all"],
     queryFn: () => RolesService.readRoles({ skip: 0, limit: 100 }),
   })
-  
+
   const {
     register,
     handleSubmit,
@@ -60,9 +65,9 @@ const EditRoleTemplate = ({ template }: EditRoleTemplateProps) => {
 
   const mutation = useMutation({
     mutationFn: (data: RoleTemplateUpdate) =>
-      RoleTemplatesService.updateRoleTemplate({ 
-        roleTemplateId: template.id, 
-        requestBody: data 
+      RoleTemplatesService.updateRoleTemplate({
+        roleTemplateId: template.id,
+        requestBody: data,
       }),
     onSuccess: () => {
       showSuccessToast("角色模板更新成功")
@@ -99,13 +104,13 @@ const EditRoleTemplate = ({ template }: EditRoleTemplateProps) => {
           编辑
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>编辑角色模板</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -116,14 +121,14 @@ const EditRoleTemplate = ({ template }: EditRoleTemplateProps) => {
                 <Box>
                   <select
                     {...register("role_id")}
-                    style={{ 
-                      padding: "8px 12px", 
-                      borderRadius: "6px", 
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "6px",
                       border: "1px solid #e2e8f0",
                       width: "100%",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     {rolesData?.data.map((role) => (
@@ -134,7 +139,7 @@ const EditRoleTemplate = ({ template }: EditRoleTemplateProps) => {
                   </select>
                 </Box>
               </Field>
-              
+
               <Field
                 label="模板名称"
                 invalid={!!errors.template_name}
@@ -151,7 +156,7 @@ const EditRoleTemplate = ({ template }: EditRoleTemplateProps) => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="激活状态"
                 invalid={!!errors.is_active}
@@ -160,14 +165,14 @@ const EditRoleTemplate = ({ template }: EditRoleTemplateProps) => {
                 <Box>
                   <select
                     {...register("is_active")}
-                    style={{ 
-                      padding: "8px 12px", 
-                      borderRadius: "6px", 
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "6px",
                       border: "1px solid #e2e8f0",
                       width: "100%",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">请选择</option>
@@ -178,7 +183,7 @@ const EditRoleTemplate = ({ template }: EditRoleTemplateProps) => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -201,4 +206,4 @@ const EditRoleTemplate = ({ template }: EditRoleTemplateProps) => {
   )
 }
 
-export default EditRoleTemplate 
+export default EditRoleTemplate

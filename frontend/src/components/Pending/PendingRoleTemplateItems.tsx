@@ -1,5 +1,5 @@
-import React from "react"
 import { Table } from "@chakra-ui/react"
+import React from "react"
 
 import { SkeletonText } from "../ui/skeleton"
 
@@ -44,4 +44,4 @@ const PendingRoleTemplateItems = () => {
   )
 }
 
-export default PendingRoleTemplateItems 
+export default PendingRoleTemplateItems

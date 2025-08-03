@@ -1,5 +1,5 @@
-import React from "react"
 import { Table } from "@chakra-ui/react"
+import React from "react"
 
 import { SkeletonText } from "../ui/skeleton"
 
@@ -48,4 +48,4 @@ const PendingRoles = () => {
   )
 }
 
-export default PendingRoles 
+export default PendingRoles

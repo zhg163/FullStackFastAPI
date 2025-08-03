@@ -1,8 +1,9 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import React, { useState } from "react"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import {
+  Box,
   Button,
   DialogActionTrigger,
   DialogRoot,
@@ -10,11 +11,15 @@ import {
   Input,
   Text,
   VStack,
-  Box,
 } from "@chakra-ui/react"
 import { FaEdit } from "react-icons/fa"
 
-import { type RolePublic, type RoleUpdate, RolesService, RoleDirsService } from "@/client"
+import {
+  RoleDirsService,
+  type RolePublic,
+  type RoleUpdate,
+  RolesService,
+} from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -36,13 +41,13 @@ const EditRole = ({ role }: EditRoleProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
-  
+
   // 获取角色分类列表
   const { data: roleDirsData } = useQuery({
     queryKey: ["roleDirs", "all"],
     queryFn: () => RoleDirsService.readRoleDirs({ skip: 0, limit: 100 }),
   })
-  
+
   const {
     register,
     handleSubmit,
@@ -61,9 +66,9 @@ const EditRole = ({ role }: EditRoleProps) => {
 
   const mutation = useMutation({
     mutationFn: (data: RoleUpdate) =>
-      RolesService.updateRole({ 
-        roleId: role.id, 
-        requestBody: data 
+      RolesService.updateRole({
+        roleId: role.id,
+        requestBody: data,
       }),
     onSuccess: () => {
       showSuccessToast("角色更新成功")
@@ -100,13 +105,13 @@ const EditRole = ({ role }: EditRoleProps) => {
           编辑
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>编辑角色</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -131,7 +136,7 @@ const EditRole = ({ role }: EditRoleProps) => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="IP分类"
                 invalid={!!errors.ip_id}
@@ -140,14 +145,14 @@ const EditRole = ({ role }: EditRoleProps) => {
                 <Box>
                   <select
                     {...register("ip_id")}
-                    style={{ 
-                      padding: "8px 12px", 
-                      borderRadius: "6px", 
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "6px",
                       border: "1px solid #e2e8f0",
                       width: "100%",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     {roleDirsData?.data.map((roleDir) => (
@@ -158,7 +163,7 @@ const EditRole = ({ role }: EditRoleProps) => {
                   </select>
                 </Box>
               </Field>
-              
+
               <Field
                 label="创建端"
                 invalid={!!errors.create_from}
@@ -175,7 +180,7 @@ const EditRole = ({ role }: EditRoleProps) => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="是否有提示词"
                 invalid={!!errors.has_prompts}
@@ -184,14 +189,14 @@ const EditRole = ({ role }: EditRoleProps) => {
                 <Box>
                   <select
                     {...register("has_prompts")}
-                    style={{ 
-                      padding: "8px 12px", 
-                      borderRadius: "6px", 
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "6px",
                       border: "1px solid #e2e8f0",
                       width: "100%",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">请选择</option>
@@ -202,7 +207,7 @@ const EditRole = ({ role }: EditRoleProps) => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -225,4 +230,4 @@ const EditRole = ({ role }: EditRoleProps) => {
   )
 }
 
-export default EditRole 
+export default EditRole

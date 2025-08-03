@@ -1,5 +1,5 @@
-import React from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import React from "react"
 import { FaTrash } from "react-icons/fa"
 
 import {
@@ -33,7 +33,10 @@ const DeleteTaskCreatRolePrompt = ({ id }: DeleteTaskCreatRolePromptProps) => {
   const { showSuccessToast } = useCustomToast()
 
   const mutation = useMutation({
-    mutationFn: () => TaskCreatRolePromptsService.deleteTaskCreatRolePrompt({ taskPromptId: parseInt(id) }),
+    mutationFn: () =>
+      TaskCreatRolePromptsService.deleteTaskCreatRolePrompt({
+        taskPromptId: Number.parseInt(id),
+      }),
     onSuccess: () => {
       showSuccessToast("任务已删除")
     },
@@ -53,18 +56,16 @@ const DeleteTaskCreatRolePrompt = ({ id }: DeleteTaskCreatRolePromptProps) => {
           删除任务
         </MenuItem>
       </DialogTrigger>
-      
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>删除任务</DialogTitle>
         </DialogHeader>
-        
+
         <DialogBody>
-          <Text>
-            确定要删除此任务吗？此操作无法撤销。
-          </Text>
+          <Text>确定要删除此任务吗？此操作无法撤销。</Text>
         </DialogBody>
-        
+
         <DialogFooter gap={2}>
           <DialogActionTrigger asChild>
             <Button variant="outline">取消</Button>
@@ -83,4 +84,4 @@ const DeleteTaskCreatRolePrompt = ({ id }: DeleteTaskCreatRolePromptProps) => {
   )
 }
 
-export default DeleteTaskCreatRolePrompt 
+export default DeleteTaskCreatRolePrompt

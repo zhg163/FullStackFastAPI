@@ -1,21 +1,26 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import React, { useState, useEffect } from "react"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import {
+  Box,
   Button,
   DialogActionTrigger,
   DialogRoot,
   DialogTrigger,
   Input,
   Text,
-  VStack,
-  Box,
   Textarea,
+  VStack,
 } from "@chakra-ui/react"
 import { FaEdit } from "react-icons/fa"
 
-import { type RolePromptPublic, type RolePromptUpdate, RolePromptsService, RolesService } from "@/client"
+import {
+  type RolePromptPublic,
+  type RolePromptUpdate,
+  RolePromptsService,
+  RolesService,
+} from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -37,21 +42,21 @@ const EditRolePrompt = ({ prompt }: EditRolePromptProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
-  
+
   // 获取角色列表
   const { data: rolesData } = useQuery({
     queryKey: ["roles", "all"],
     queryFn: () => RolesService.readRoles({ skip: 0, limit: 100 }),
   })
-  
+
   const [promptText, setPromptText] = useState("")
-  
+
   useEffect(() => {
     if (prompt.user_prompt) {
       setPromptText(JSON.stringify(prompt.user_prompt, null, 2))
     }
   }, [prompt.user_prompt])
-  
+
   const {
     register,
     handleSubmit,
@@ -69,9 +74,9 @@ const EditRolePrompt = ({ prompt }: EditRolePromptProps) => {
 
   const mutation = useMutation({
     mutationFn: (data: RolePromptUpdate) =>
-      RolePromptsService.updateRolePrompt({ 
-        rolePromptId: prompt.id, 
-        requestBody: data 
+      RolePromptsService.updateRolePrompt({
+        rolePromptId: prompt.id,
+        requestBody: data,
       }),
     onSuccess: () => {
       showSuccessToast("角色提示词更新成功")
@@ -118,13 +123,13 @@ const EditRolePrompt = ({ prompt }: EditRolePromptProps) => {
           编辑
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>编辑角色提示词</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -135,14 +140,14 @@ const EditRolePrompt = ({ prompt }: EditRolePromptProps) => {
                 <Box>
                   <select
                     {...register("role_id")}
-                    style={{ 
-                      padding: "8px 12px", 
-                      borderRadius: "6px", 
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "6px",
                       border: "1px solid #e2e8f0",
                       width: "100%",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     {rolesData?.data.map((role) => (
@@ -153,7 +158,7 @@ const EditRolePrompt = ({ prompt }: EditRolePromptProps) => {
                   </select>
                 </Box>
               </Field>
-              
+
               <Field
                 label="版本号"
                 invalid={!!errors.version}
@@ -181,14 +186,14 @@ const EditRolePrompt = ({ prompt }: EditRolePromptProps) => {
                 <Box>
                   <select
                     {...register("is_active")}
-                    style={{ 
-                      padding: "8px 12px", 
-                      borderRadius: "6px", 
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "6px",
                       border: "1px solid #e2e8f0",
                       width: "100%",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="Y">激活</option>
@@ -196,7 +201,7 @@ const EditRolePrompt = ({ prompt }: EditRolePromptProps) => {
                   </select>
                 </Box>
               </Field>
-              
+
               <Field
                 label="用户提示词内容"
                 invalid={!!promptText && promptText.length === 0}
@@ -217,7 +222,7 @@ const EditRolePrompt = ({ prompt }: EditRolePromptProps) => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -241,4 +246,4 @@ const EditRolePrompt = ({ prompt }: EditRolePromptProps) => {
   )
 }
 
-export default EditRolePrompt 
+export default EditRolePrompt

@@ -24,6 +24,7 @@ import { Route as LayoutRoleTemplatesImport } from './routes/_layout/role-templa
 import { Route as LayoutRoleTemplateItemsImport } from './routes/_layout/role-template-items'
 import { Route as LayoutRolePromptsImport } from './routes/_layout/role-prompts'
 import { Route as LayoutRoleDirsImport } from './routes/_layout/role-dirs'
+import { Route as LayoutPromptGeneratorImport } from './routes/_layout/prompt-generator'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
 
@@ -96,6 +97,11 @@ const LayoutRoleDirsRoute = LayoutRoleDirsImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutPromptGeneratorRoute = LayoutPromptGeneratorImport.update({
+  path: '/prompt-generator',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
 const LayoutItemsRoute = LayoutItemsImport.update({
   path: '/items',
   getParentRoute: () => LayoutRoute,
@@ -136,6 +142,10 @@ declare module '@tanstack/react-router' {
     }
     '/_layout/items': {
       preLoaderRoute: typeof LayoutItemsImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/prompt-generator': {
+      preLoaderRoute: typeof LayoutPromptGeneratorImport
       parentRoute: typeof LayoutImport
     }
     '/_layout/role-dirs': {
@@ -179,6 +189,7 @@ export const routeTree = rootRoute.addChildren([
   LayoutRoute.addChildren([
     LayoutAdminRoute,
     LayoutItemsRoute,
+    LayoutPromptGeneratorRoute,
     LayoutRoleDirsRoute,
     LayoutRolePromptsRoute,
     LayoutRoleTemplateItemsRoute,

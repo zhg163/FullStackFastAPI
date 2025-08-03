@@ -1,20 +1,24 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import React, { useState } from "react"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import {
+  Box,
   Button,
   DialogActionTrigger,
   DialogTitle,
   Input,
   Text,
-  VStack,
-  Box,
   Textarea,
+  VStack,
 } from "@chakra-ui/react"
 import { FaPlus } from "react-icons/fa"
 
-import { type RoleTemplateItemCreate, RoleTemplateItemsService, RoleTemplatesService } from "@/client"
+import {
+  type RoleTemplateItemCreate,
+  RoleTemplateItemsService,
+  RoleTemplatesService,
+} from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -33,13 +37,14 @@ const AddRoleTemplateItem = () => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
-  
+
   // 获取角色模板列表
   const { data: roleTemplatesData } = useQuery({
     queryKey: ["role-templates", "all"],
-    queryFn: () => RoleTemplatesService.readRoleTemplates({ skip: 0, limit: 100 }),
+    queryFn: () =>
+      RoleTemplatesService.readRoleTemplates({ skip: 0, limit: 100 }),
   })
-  
+
   const {
     register,
     handleSubmit,
@@ -88,23 +93,18 @@ const AddRoleTemplateItem = () => {
       placement="center"
     >
       <DialogTrigger asChild>
-        <Button
-          variant="solid"
-          colorScheme="purple"
-          size="md"
-          mb={4}
-        >
+        <Button variant="solid" colorScheme="purple" size="md" mb={4}>
           <FaPlus fontSize="16px" />
           添加模板条目
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>添加模板条目</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -117,7 +117,8 @@ const AddRoleTemplateItem = () => {
                   <select
                     {...register("role_tmp_id", {
                       required: "请选择角色模板",
-                      validate: (value) => Number(value) > 0 || "请选择有效的角色模板"
+                      validate: (value) =>
+                        Number(value) > 0 || "请选择有效的角色模板",
                     })}
                     style={{
                       width: "100%",
@@ -126,19 +127,20 @@ const AddRoleTemplateItem = () => {
                       border: "1px solid #E2E8F0",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">请选择角色模板</option>
                     {roleTemplatesData?.data.map((template) => (
                       <option key={template.id} value={template.id}>
-                        {template.template_name || `ID:${template.id}`} - {template.role?.name}
+                        {template.template_name || `ID:${template.id}`} -{" "}
+                        {template.role?.name}
                       </option>
                     ))}
                   </select>
                 </Box>
               </Field>
-              
+
               <Field
                 label="条目名称"
                 invalid={!!errors.item_name}
@@ -162,7 +164,7 @@ const AddRoleTemplateItem = () => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="提示词描述"
                 invalid={!!errors.item_prompt_desc}
@@ -178,7 +180,7 @@ const AddRoleTemplateItem = () => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -202,4 +204,4 @@ const AddRoleTemplateItem = () => {
   )
 }
 
-export default AddRoleTemplateItem 
+export default AddRoleTemplateItem

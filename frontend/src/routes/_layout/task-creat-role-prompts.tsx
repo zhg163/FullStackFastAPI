@@ -1,21 +1,38 @@
-import React, { useState } from "react"
-import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Grid, GridItem, Text } from "@chakra-ui/react"
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  Input,
+  Table,
+  Text,
+} from "@chakra-ui/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import type React from "react"
+import { useState } from "react"
+import { FiRefreshCcw, FiSearch } from "react-icons/fi"
 import { z } from "zod"
-import { FiSearch, FiRefreshCcw } from "react-icons/fi"
 
-import { type TaskCreatRolePromptPublic, TaskCreatRolePromptsService, RolesService } from "@/client"
-import AddTaskCreatRolePrompt from "@/components/TaskCreatRolePrompts/AddTaskCreatRolePrompt"
+import {
+  RolesService,
+  type TaskCreatRolePromptPublic,
+  TaskCreatRolePromptsService,
+} from "@/client"
 import { TaskCreatRolePromptActionsMenu } from "@/components/Common/TaskCreatRolePromptActionsMenu"
 import PendingTaskCreatRolePrompts from "@/components/Pending/PendingTaskCreatRolePrompts"
+import AddTaskCreatRolePrompt from "@/components/TaskCreatRolePrompts/AddTaskCreatRolePrompt"
+import { Field } from "@/components/ui/field"
 import {
   PaginationItems,
   PaginationNextTrigger,
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination.tsx"
-import { Field } from "@/components/ui/field"
 
 const taskCreatRolePromptsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -26,12 +43,12 @@ const taskCreatRolePromptsSearchSchema = z.object({
 
 const PER_PAGE = 5
 
-function getTaskCreatRolePromptsQueryOptions({ 
-  page, 
-  task_name, 
+function getTaskCreatRolePromptsQueryOptions({
+  page,
+  task_name,
   task_state,
   role_id,
-}: { 
+}: {
   page: number
   task_name?: string
   task_state?: string
@@ -41,14 +58,17 @@ function getTaskCreatRolePromptsQueryOptions({
     skip: (page - 1) * PER_PAGE,
     limit: PER_PAGE,
   }
-  
+
   if (task_name) params.taskName = task_name
   if (task_state) params.taskState = task_state
   if (role_id) params.roleId = role_id
 
   return {
     queryFn: () => TaskCreatRolePromptsService.readTaskCreatRolePrompts(params),
-    queryKey: ["task-creat-role-prompts", { page, task_name, task_state, role_id }],
+    queryKey: [
+      "task-creat-role-prompts",
+      { page, task_name, task_state, role_id },
+    ],
   }
 }
 
@@ -81,8 +101,8 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
     const filters: any = {}
     if (taskName.trim()) filters.task_name = taskName.trim()
     if (taskState.trim()) filters.task_state = taskState.trim()
-    if (roleId.trim()) filters.role_id = parseInt(roleId.trim())
-    
+    if (roleId.trim()) filters.role_id = Number.parseInt(roleId.trim())
+
     console.log("搜索条件:", filters)
     onSearch(filters)
   }
@@ -96,14 +116,16 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
 
   return (
     <Box p={6} bg="gray.50" borderRadius="lg" mb={6} shadow="sm">
-      <Heading size="md" mb={4} color="gray.700">搜索条件</Heading>
-      
-      <Grid 
-        templateColumns={{ 
-          base: "1fr", 
-          md: "repeat(3, 1fr)" 
-        }} 
-        gap={4} 
+      <Heading size="md" mb={4} color="gray.700">
+        搜索条件
+      </Heading>
+
+      <Grid
+        templateColumns={{
+          base: "1fr",
+          md: "repeat(3, 1fr)",
+        }}
+        gap={4}
         mb={4}
       >
         <GridItem>
@@ -115,17 +137,22 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
             />
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="任务状态">
             <Box>
               <select
                 value={taskState}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTaskState(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setTaskState(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -133,25 +160,27 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">全部状态</option>
                 <option value="C">已完成</option>
-                <option value="P">进行中</option>
+                <option value="P">待启动</option>
                 <option value="F">失败</option>
                 <option value="W">等待中</option>
               </select>
             </Box>
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="所属角色">
             <Box>
               <select
                 value={roleId}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRoleId(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setRoleId(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -159,7 +188,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">选择角色</option>
@@ -173,7 +202,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           </Field>
         </GridItem>
       </Grid>
-      
+
       <Flex gap={3} justify={{ base: "center", md: "flex-start" }}>
         <Button
           colorScheme="blue"
@@ -184,12 +213,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           <FiSearch style={{ marginRight: "6px" }} />
           搜索
         </Button>
-        <Button
-          variant="outline"
-          onClick={handleReset}
-          size="md"
-          minW="100px"
-        >
+        <Button variant="outline" onClick={handleReset} size="md" minW="100px">
           <FiRefreshCcw style={{ marginRight: "6px" }} />
           重置
         </Button>
@@ -205,8 +229,15 @@ function TaskCreatRolePromptsTable() {
   const { page, task_name, task_state, role_id } = searchParams
 
   const { data, isLoading, isPlaceholderData } = useQuery({
-    ...getTaskCreatRolePromptsQueryOptions({ page, task_name, task_state, role_id }),
+    ...getTaskCreatRolePromptsQueryOptions({
+      page,
+      task_name,
+      task_state,
+      role_id,
+    }),
     placeholderData: (prevData) => prevData,
+    staleTime: 1000 * 30, // 30秒后数据过期
+    refetchOnWindowFocus: true, // 窗口聚焦时重新获取
   })
 
   const setPage = (page: number) =>
@@ -241,11 +272,16 @@ function TaskCreatRolePromptsTable() {
   // 任务状态映射
   const getTaskStateDisplay = (state: string | null | undefined) => {
     switch (state) {
-      case "C": return { label: "已完成", color: "green" }
-      case "P": return { label: "进行中", color: "blue" }
-      case "F": return { label: "失败", color: "red" }
-      case "W": return { label: "等待中", color: "yellow" }
-      default: return { label: "未知", color: "gray" }
+      case "C":
+        return { label: "已完成", color: "green" }
+      case "P":
+        return { label: "待启动", color: "orange" }
+      case "F":
+        return { label: "失败", color: "red" }
+      case "W":
+        return { label: "等待中", color: "yellow" }
+      default:
+        return { label: "未知", color: "gray" }
     }
   }
 
@@ -258,28 +294,64 @@ function TaskCreatRolePromptsTable() {
     )
   }
 
+  const handleRefresh = () => {
+    console.log("手动刷新任务列表")
+    queryClient.invalidateQueries({ queryKey: ["task-creat-role-prompts"] })
+  }
+
   return (
     <>
-      <SearchForm onSearch={handleSearch} onReset={handleReset} />
-      
+      <Flex justifyContent="space-between" alignItems="center" mb={4}>
+        <SearchForm onSearch={handleSearch} onReset={handleReset} />
+        <Button
+          colorScheme="teal"
+          onClick={handleRefresh}
+          size="md"
+          minW="100px"
+        >
+          <FiRefreshCcw style={{ marginRight: "6px" }} />
+          刷新数据
+        </Button>
+      </Flex>
+
       <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
           <Table.Row bg="gray.50">
-            <Table.ColumnHeader w="sm" fontWeight="bold">ID</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">任务名称</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">任务状态</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">所属角色</Table.ColumnHeader>
-            <Table.ColumnHeader w="lg" fontWeight="bold">任务命令</Table.ColumnHeader>
-            <Table.ColumnHeader w="lg" fontWeight="bold">角色条目提示词</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">创建时间</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">操作</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              ID
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              任务名称
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              任务状态
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              所属角色
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="lg" fontWeight="bold">
+              任务命令
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="lg" fontWeight="bold">
+              角色条目提示词
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              创建时间
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              操作
+            </Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {taskPrompts?.map((task) => {
             const stateDisplay = getTaskStateDisplay(task.task_state)
             return (
-              <Table.Row key={task.id} opacity={isPlaceholderData ? 0.5 : 1} _hover={{ bg: "gray.50" }}>
+              <Table.Row
+                key={task.id}
+                opacity={isPlaceholderData ? 0.5 : 1}
+                _hover={{ bg: "gray.50" }}
+              >
                 <Table.Cell>
                   <Badge colorScheme="teal">{task.id}</Badge>
                 </Table.Cell>
@@ -287,10 +359,7 @@ function TaskCreatRolePromptsTable() {
                   {task.task_name || "未命名任务"}
                 </Table.Cell>
                 <Table.Cell>
-                  <Badge 
-                    colorScheme={stateDisplay.color}
-                    variant="solid"
-                  >
+                  <Badge colorScheme={stateDisplay.color} variant="solid">
                     {stateDisplay.label}
                   </Badge>
                 </Table.Cell>
@@ -303,38 +372,35 @@ function TaskCreatRolePromptsTable() {
                   )}
                 </Table.Cell>
                 <Table.Cell>
-                  <Box 
-                    maxW="200px" 
-                    overflow="hidden" 
-                    textOverflow="ellipsis" 
+                  <Box
+                    maxW="200px"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
                     whiteSpace="nowrap"
                     title={JSON.stringify(task.task_cmd, null, 2)}
                   >
-                    {typeof task.task_cmd === 'object' 
-                      ? JSON.stringify(task.task_cmd).substring(0, 50) + "..."
-                      : String(task.task_cmd)
-                    }
+                    {typeof task.task_cmd === "object"
+                      ? `${JSON.stringify(task.task_cmd).substring(0, 50)}...`
+                      : String(task.task_cmd)}
                   </Box>
                 </Table.Cell>
                 <Table.Cell>
-                  <Box 
-                    maxW="200px" 
-                    overflow="hidden" 
-                    textOverflow="ellipsis" 
+                  <Box
+                    maxW="200px"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
                     whiteSpace="nowrap"
                     title={JSON.stringify(task.role_item_prompt, null, 2)}
                   >
-                    {typeof task.role_item_prompt === 'object' 
-                      ? JSON.stringify(task.role_item_prompt).substring(0, 50) + "..."
-                      : String(task.role_item_prompt)
-                    }
+                    {typeof task.role_item_prompt === "object"
+                      ? `${JSON.stringify(task.role_item_prompt).substring(0, 50)}...`
+                      : String(task.role_item_prompt)}
                   </Box>
                 </Table.Cell>
                 <Table.Cell>
-                  {task.created_at 
-                    ? new Date(task.created_at).toLocaleString('zh-CN')
-                    : "未知"
-                  }
+                  {task.created_at
+                    ? new Date(task.created_at).toLocaleString("zh-CN")
+                    : "未知"}
                 </Table.Cell>
                 <Table.Cell>
                   <TaskCreatRolePromptActionsMenu task={task} />
@@ -344,7 +410,7 @@ function TaskCreatRolePromptsTable() {
           })}
         </Table.Body>
       </Table.Root>
-      
+
       {count > 0 && (
         <Flex justifyContent="flex-end" mt={4}>
           <PaginationRoot
@@ -360,10 +426,19 @@ function TaskCreatRolePromptsTable() {
           </PaginationRoot>
         </Flex>
       )}
-      
+
       {count === 0 && (
-        <Box textAlign="center" py={8} color="gray.500" bg="white" borderRadius="md" shadow="sm">
-          {task_name || task_state || role_id ? "未找到匹配的任务" : "暂无任务数据"}
+        <Box
+          textAlign="center"
+          py={8}
+          color="gray.500"
+          bg="white"
+          borderRadius="md"
+          shadow="sm"
+        >
+          {task_name || task_state || role_id
+            ? "未找到匹配的任务"
+            : "暂无任务数据"}
         </Box>
       )}
     </>
@@ -381,4 +456,4 @@ function TaskCreatRolePrompts() {
       <TaskCreatRolePromptsTable />
     </Container>
   )
-} 
+}

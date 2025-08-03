@@ -1,17 +1,18 @@
 import { Badge, Flex, Icon, Text } from "@chakra-ui/react"
+import { Link } from "@tanstack/react-router"
 import {
   FiBriefcase,
+  FiClipboard,
   FiHome,
+  FiLayers,
+  FiList,
+  FiMessageSquare,
   FiSettings,
   FiUsers,
-  FiList,
-  FiLayers,
-  FiMessageSquare,
-  FiClipboard,
+  FiZap,
 } from "react-icons/fi"
-import { Link } from "@tanstack/react-router"
 
-import { type UserPublic } from "@/client"
+import type { UserPublic } from "@/client"
 
 const items = [
   { icon: FiHome, title: "首页", path: "/" },
@@ -53,11 +54,7 @@ const SidebarItems = ({ onClose }: SidebarItemsProps) => {
     </Link>
   ))
 
-  return (
-    <>
-      {listItems}
-    </>
-  )
+  return <>{listItems}</>
 }
 
 // 超级用户专享功能
@@ -70,6 +67,7 @@ const AdminItems = ({ onClose }: SidebarItemsProps) => {
     { icon: FiList, title: "模板条目", path: "/role-template-items" },
     { icon: FiMessageSquare, title: "角色提示词", path: "/role-prompts" },
     { icon: FiClipboard, title: "任务管理", path: "/task-creat-role-prompts" },
+    { icon: FiZap, title: "批量生成", path: "/prompt-generator" },
   ]
 
   const adminListItems = adminItems.map(({ icon, title, path }) => (
@@ -103,7 +101,14 @@ const AdminItems = ({ onClose }: SidebarItemsProps) => {
 
   return (
     <>
-      <Text fontSize="xs" fontWeight="bold" color="gray.400" letterSpacing="wide" mb={2} px={4}>
+      <Text
+        fontSize="xs"
+        fontWeight="bold"
+        color="gray.400"
+        letterSpacing="wide"
+        mb={2}
+        px={4}
+      >
         管理功能
       </Text>
       {adminListItems}
@@ -127,7 +132,11 @@ const UserMenu = ({ user, onClose }: UserMenuProps) => {
           { icon: FiList, title: "角色模板", path: "/role-templates" },
           { icon: FiList, title: "模板条目", path: "/role-template-items" },
           { icon: FiMessageSquare, title: "角色提示词", path: "/role-prompts" },
-          { icon: FiClipboard, title: "任务管理", path: "/task-creat-role-prompts" },
+          {
+            icon: FiClipboard,
+            title: "任务管理",
+            path: "/task-creat-role-prompts",
+          },
         ]
       : []),
   ]
@@ -157,11 +166,14 @@ const UserMenu = ({ user, onClose }: UserMenuProps) => {
           as={icon}
         />
         <Text fontWeight="medium">{title}</Text>
-        {(path === "/admin" || path.startsWith("/role") || path.startsWith("/task")) && user?.is_superuser && (
-          <Badge ml="auto" size="sm" colorScheme="blue">
-            管理
-          </Badge>
-        )}
+        {(path === "/admin" ||
+          path.startsWith("/role") ||
+          path.startsWith("/task")) &&
+          user?.is_superuser && (
+            <Badge ml="auto" size="sm" colorScheme="blue">
+              管理
+            </Badge>
+          )}
       </Flex>
     </Link>
   ))

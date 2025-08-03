@@ -1,21 +1,33 @@
-import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Stack, Grid, GridItem } from "@chakra-ui/react"
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  Input,
+  Stack,
+  Table,
+} from "@chakra-ui/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { z } from "zod"
 import { useState } from "react"
-import { FiSearch, FiRefreshCcw } from "react-icons/fi"
+import { FiRefreshCcw, FiSearch } from "react-icons/fi"
+import { z } from "zod"
 
 import { type UserPublic, UsersService } from "@/client"
 import AddUser from "@/components/Admin/AddUser"
 import { UserActionsMenu } from "@/components/Common/UserActionsMenu"
 import PendingUsers from "@/components/Pending/PendingUsers"
+import { Field } from "@/components/ui/field"
 import {
   PaginationItems,
   PaginationNextTrigger,
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination.tsx"
-import { Field } from "@/components/ui/field"
 
 const usersSearchSchema = z.object({
   page: z.number().catch(1),
@@ -27,13 +39,13 @@ const usersSearchSchema = z.object({
 
 const PER_PAGE = 5
 
-function getUsersQueryOptions({ 
-  page, 
-  full_name, 
-  email, 
-  role, 
-  status 
-}: { 
+function getUsersQueryOptions({
+  page,
+  full_name,
+  email,
+  role,
+  status,
+}: {
   page: number
   full_name?: string
   email?: string
@@ -44,7 +56,7 @@ function getUsersQueryOptions({
     skip: (page - 1) * PER_PAGE,
     limit: PER_PAGE,
   }
-  
+
   if (full_name) params.fullName = full_name
   if (email) params.email = email
   if (role) params.role = role
@@ -83,7 +95,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
     if (email.trim()) filters.email = email.trim()
     if (role) filters.role = role
     if (status) filters.status = status
-    
+
     console.log("搜索条件:", filters) // 添加调试日志
     onSearch(filters)
   }
@@ -98,16 +110,18 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
 
   return (
     <Box p={6} bg="gray.50" borderRadius="lg" mb={6} shadow="sm">
-      <Heading size="md" mb={4} color="gray.700">搜索条件</Heading>
-      
+      <Heading size="md" mb={4} color="gray.700">
+        搜索条件
+      </Heading>
+
       {/* 使用Grid布局实现响应式横向排列 */}
-      <Grid 
-        templateColumns={{ 
-          base: "1fr", 
-          md: "repeat(2, 1fr)", 
-          lg: "repeat(4, 1fr)" 
-        }} 
-        gap={4} 
+      <Grid
+        templateColumns={{
+          base: "1fr",
+          md: "repeat(2, 1fr)",
+          lg: "repeat(4, 1fr)",
+        }}
+        gap={4}
         mb={4}
       >
         <GridItem>
@@ -119,11 +133,14 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
             />
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="邮箱">
             <Input
@@ -133,17 +150,22 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
             />
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="角色">
             <Box>
               <select
                 value={role}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRole(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setRole(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -151,7 +173,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">选择角色</option>
@@ -161,13 +183,15 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
             </Box>
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="状态">
             <Box>
               <select
                 value={status}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatus(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setStatus(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -175,7 +199,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">选择状态</option>
@@ -186,7 +210,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           </Field>
         </GridItem>
       </Grid>
-      
+
       {/* 按钮区域 */}
       <Flex gap={3} justify={{ base: "center", md: "flex-start" }}>
         <Button
@@ -198,12 +222,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           <FiSearch style={{ marginRight: "6px" }} />
           搜索
         </Button>
-        <Button
-          variant="outline"
-          onClick={handleReset}
-          size="md"
-          minW="100px"
-        >
+        <Button variant="outline" onClick={handleReset} size="md" minW="100px">
           <FiRefreshCcw style={{ marginRight: "6px" }} />
           重置
         </Button>
@@ -267,20 +286,34 @@ function UsersTable() {
   return (
     <>
       <SearchForm onSearch={handleSearch} onReset={handleReset} />
-      
+
       <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
           <Table.Row bg="gray.50">
-            <Table.ColumnHeader w="sm" fontWeight="bold">Full name</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">Email</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">Role</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">Status</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">Actions</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              Full name
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              Email
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              Role
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              Status
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              Actions
+            </Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {users?.map((user) => (
-            <Table.Row key={user.id} opacity={isPlaceholderData ? 0.5 : 1} _hover={{ bg: "gray.50" }}>
+            <Table.Row
+              key={user.id}
+              opacity={isPlaceholderData ? 0.5 : 1}
+              _hover={{ bg: "gray.50" }}
+            >
               <Table.Cell color={!user.full_name ? "gray" : "inherit"}>
                 {user.full_name || "N/A"}
                 {currentUser?.id === user.id && (
@@ -312,7 +345,7 @@ function UsersTable() {
           ))}
         </Table.Body>
       </Table.Root>
-      
+
       {count > 0 && (
         <Flex justifyContent="flex-end" mt={4}>
           <PaginationRoot
@@ -328,10 +361,19 @@ function UsersTable() {
           </PaginationRoot>
         </Flex>
       )}
-      
+
       {count === 0 && (
-        <Box textAlign="center" py={8} color="gray.500" bg="white" borderRadius="md" shadow="sm">
-          {full_name || email || role || status ? "未找到匹配的用户" : "暂无用户数据"}
+        <Box
+          textAlign="center"
+          py={8}
+          color="gray.500"
+          bg="white"
+          borderRadius="md"
+          shadow="sm"
+        >
+          {full_name || email || role || status
+            ? "未找到匹配的用户"
+            : "暂无用户数据"}
         </Box>
       )}
     </>

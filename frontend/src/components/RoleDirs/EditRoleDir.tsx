@@ -13,7 +13,11 @@ import {
 import { useState } from "react"
 import { FaEdit } from "react-icons/fa"
 
-import { type RoleDirPublic, type RoleDirUpdate, RoleDirsService } from "@/client"
+import {
+  type RoleDirPublic,
+  type RoleDirUpdate,
+  RoleDirsService,
+} from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -51,9 +55,9 @@ const EditRoleDir = ({ roleDir }: EditRoleDirProps) => {
 
   const mutation = useMutation({
     mutationFn: (data: RoleDirUpdate) =>
-      RoleDirsService.updateRoleDir({ 
-        roleDirId: roleDir.id, 
-        requestBody: data 
+      RoleDirsService.updateRoleDir({
+        roleDirId: roleDir.id,
+        requestBody: data,
       }),
     onSuccess: () => {
       showSuccessToast("角色分类更新成功")
@@ -85,13 +89,13 @@ const EditRoleDir = ({ roleDir }: EditRoleDirProps) => {
           编辑
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>编辑角色分类</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -116,7 +120,7 @@ const EditRoleDir = ({ roleDir }: EditRoleDirProps) => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="IP描述"
                 invalid={!!errors.ip_desc}
@@ -135,7 +139,7 @@ const EditRoleDir = ({ roleDir }: EditRoleDirProps) => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -158,4 +162,4 @@ const EditRoleDir = ({ roleDir }: EditRoleDirProps) => {
   )
 }
 
-export default EditRoleDir 
+export default EditRoleDir

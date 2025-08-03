@@ -1,21 +1,20 @@
 import { IconButton } from "@chakra-ui/react"
 import { FaEllipsisV } from "react-icons/fa"
 
-import { type RoleDirPublic } from "@/client"
+import type { RoleDirPublic } from "@/client"
 import DeleteRoleDir from "../RoleDirs/DeleteRoleDir"
 import EditRoleDir from "../RoleDirs/EditRoleDir"
-import {
-  MenuContent,
-  MenuRoot,
-  MenuTrigger,
-} from "../ui/menu"
+import { MenuContent, MenuRoot, MenuTrigger } from "../ui/menu"
 
 interface RoleDirActionsMenuProps {
   roleDir: RoleDirPublic
   disabled?: boolean
 }
 
-export const RoleDirActionsMenu = ({ roleDir, disabled }: RoleDirActionsMenuProps) => {
+export const RoleDirActionsMenu = ({
+  roleDir,
+  disabled,
+}: RoleDirActionsMenuProps) => {
   return (
     <MenuRoot closeOnSelect={false}>
       <MenuTrigger asChild>
@@ -29,4 +28,4 @@ export const RoleDirActionsMenu = ({ roleDir, disabled }: RoleDirActionsMenuProp
       </MenuContent>
     </MenuRoot>
   )
-} 
+}

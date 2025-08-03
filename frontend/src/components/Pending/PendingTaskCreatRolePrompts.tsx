@@ -1,5 +1,5 @@
-import React from "react"
 import { Table } from "@chakra-ui/react"
+import React from "react"
 
 import { SkeletonText } from "../ui/skeleton"
 
@@ -52,4 +52,4 @@ const PendingTaskCreatRolePrompts = () => {
   )
 }
 
-export default PendingTaskCreatRolePrompts 
+export default PendingTaskCreatRolePrompts

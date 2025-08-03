@@ -1,21 +1,38 @@
-import React, { useState } from "react"
-import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Grid, GridItem, Text } from "@chakra-ui/react"
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  Input,
+  Table,
+  Text,
+} from "@chakra-ui/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import type React from "react"
+import { useState } from "react"
+import { FiRefreshCcw, FiSearch } from "react-icons/fi"
 import { z } from "zod"
-import { FiSearch, FiRefreshCcw } from "react-icons/fi"
 
-import { type RolePromptPublic, RolePromptsService, RolesService } from "@/client"
-import AddRolePrompt from "@/components/RolePrompts/AddRolePrompt"
+import {
+  type RolePromptPublic,
+  RolePromptsService,
+  RolesService,
+} from "@/client"
 import { RolePromptActionsMenu } from "@/components/Common/RolePromptActionsMenu"
 import PendingRolePrompts from "@/components/Pending/PendingRolePrompts"
+import AddRolePrompt from "@/components/RolePrompts/AddRolePrompt"
+import { Field } from "@/components/ui/field"
 import {
   PaginationItems,
   PaginationNextTrigger,
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination.tsx"
-import { Field } from "@/components/ui/field"
 
 const rolePromptsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -26,12 +43,12 @@ const rolePromptsSearchSchema = z.object({
 
 const PER_PAGE = 5
 
-function getRolePromptsQueryOptions({ 
-  page, 
-  role_id, 
+function getRolePromptsQueryOptions({
+  page,
+  role_id,
   version,
   is_active,
-}: { 
+}: {
   page: number
   role_id?: number
   version?: number
@@ -41,7 +58,7 @@ function getRolePromptsQueryOptions({
     skip: (page - 1) * PER_PAGE,
     limit: PER_PAGE,
   }
-  
+
   if (role_id) params.roleId = role_id
   if (version) params.version = version
   if (is_active) params.isActive = is_active
@@ -79,10 +96,10 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
 
   const handleSearch = () => {
     const filters: any = {}
-    if (roleId.trim()) filters.role_id = parseInt(roleId.trim())
-    if (version.trim()) filters.version = parseInt(version.trim())
+    if (roleId.trim()) filters.role_id = Number.parseInt(roleId.trim())
+    if (version.trim()) filters.version = Number.parseInt(version.trim())
     if (isActive.trim()) filters.is_active = isActive.trim()
-    
+
     console.log("搜索条件:", filters)
     onSearch(filters)
   }
@@ -96,14 +113,16 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
 
   return (
     <Box p={6} bg="gray.50" borderRadius="lg" mb={6} shadow="sm">
-      <Heading size="md" mb={4} color="gray.700">搜索条件</Heading>
-      
-      <Grid 
-        templateColumns={{ 
-          base: "1fr", 
-          md: "repeat(3, 1fr)" 
-        }} 
-        gap={4} 
+      <Heading size="md" mb={4} color="gray.700">
+        搜索条件
+      </Heading>
+
+      <Grid
+        templateColumns={{
+          base: "1fr",
+          md: "repeat(3, 1fr)",
+        }}
+        gap={4}
         mb={4}
       >
         <GridItem>
@@ -111,7 +130,9 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
             <Box>
               <select
                 value={roleId}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRoleId(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setRoleId(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -119,7 +140,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">选择角色</option>
@@ -132,7 +153,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
             </Box>
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="版本号">
             <Input
@@ -142,18 +163,23 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
               type="number"
             />
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="激活状态">
             <Box>
               <select
                 value={isActive}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIsActive(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setIsActive(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -161,7 +187,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">全部状态</option>
@@ -172,7 +198,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           </Field>
         </GridItem>
       </Grid>
-      
+
       <Flex gap={3} justify={{ base: "center", md: "flex-start" }}>
         <Button
           colorScheme="blue"
@@ -183,12 +209,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           <FiSearch style={{ marginRight: "6px" }} />
           搜索
         </Button>
-        <Button
-          variant="outline"
-          onClick={handleReset}
-          size="md"
-          minW="100px"
-        >
+        <Button variant="outline" onClick={handleReset} size="md" minW="100px">
           <FiRefreshCcw style={{ marginRight: "6px" }} />
           重置
         </Button>
@@ -249,22 +270,40 @@ function RolePromptsTable() {
   return (
     <>
       <SearchForm onSearch={handleSearch} onReset={handleReset} />
-      
+
       <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
           <Table.Row bg="gray.50">
-            <Table.ColumnHeader w="sm" fontWeight="bold">ID</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">所属角色</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">版本号</Table.ColumnHeader>
-            <Table.ColumnHeader w="lg" fontWeight="bold">用户提示词</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">激活状态</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">创建时间</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">操作</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              ID
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              所属角色
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              版本号
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="lg" fontWeight="bold">
+              用户提示词
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              激活状态
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              创建时间
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              操作
+            </Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {rolePrompts?.map((prompt) => (
-            <Table.Row key={prompt.id} opacity={isPlaceholderData ? 0.5 : 1} _hover={{ bg: "gray.50" }}>
+            <Table.Row
+              key={prompt.id}
+              opacity={isPlaceholderData ? 0.5 : 1}
+              _hover={{ bg: "gray.50" }}
+            >
               <Table.Cell>
                 <Badge colorScheme="green">{prompt.id}</Badge>
               </Table.Cell>
@@ -282,21 +321,20 @@ function RolePromptsTable() {
                 </Badge>
               </Table.Cell>
               <Table.Cell>
-                <Box 
-                  maxW="300px" 
-                  overflow="hidden" 
-                  textOverflow="ellipsis" 
+                <Box
+                  maxW="300px"
+                  overflow="hidden"
+                  textOverflow="ellipsis"
                   whiteSpace="nowrap"
                   title={JSON.stringify(prompt.user_prompt, null, 2)}
                 >
-                  {typeof prompt.user_prompt === 'object' 
-                    ? JSON.stringify(prompt.user_prompt).substring(0, 100) + "..."
-                    : String(prompt.user_prompt)
-                  }
+                  {typeof prompt.user_prompt === "object"
+                    ? `${JSON.stringify(prompt.user_prompt).substring(0, 100)}...`
+                    : String(prompt.user_prompt)}
                 </Box>
               </Table.Cell>
               <Table.Cell>
-                <Badge 
+                <Badge
                   colorScheme={prompt.is_active === "Y" ? "green" : "gray"}
                   variant={prompt.is_active === "Y" ? "solid" : "outline"}
                 >
@@ -304,10 +342,9 @@ function RolePromptsTable() {
                 </Badge>
               </Table.Cell>
               <Table.Cell>
-                {prompt.created_at 
-                  ? new Date(prompt.created_at).toLocaleString('zh-CN')
-                  : "未知"
-                }
+                {prompt.created_at
+                  ? new Date(prompt.created_at).toLocaleString("zh-CN")
+                  : "未知"}
               </Table.Cell>
               <Table.Cell>
                 <RolePromptActionsMenu prompt={prompt} />
@@ -316,7 +353,7 @@ function RolePromptsTable() {
           ))}
         </Table.Body>
       </Table.Root>
-      
+
       {count > 0 && (
         <Flex justifyContent="flex-end" mt={4}>
           <PaginationRoot
@@ -332,10 +369,19 @@ function RolePromptsTable() {
           </PaginationRoot>
         </Flex>
       )}
-      
+
       {count === 0 && (
-        <Box textAlign="center" py={8} color="gray.500" bg="white" borderRadius="md" shadow="sm">
-          {role_id || version || is_active ? "未找到匹配的角色提示词" : "暂无角色提示词数据"}
+        <Box
+          textAlign="center"
+          py={8}
+          color="gray.500"
+          bg="white"
+          borderRadius="md"
+          shadow="sm"
+        >
+          {role_id || version || is_active
+            ? "未找到匹配的角色提示词"
+            : "暂无角色提示词数据"}
         </Box>
       )}
     </>
@@ -353,4 +399,4 @@ function RolePrompts() {
       <RolePromptsTable />
     </Container>
   )
-} 
+}

@@ -1,19 +1,19 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import React, { useState } from "react"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import {
+  Box,
   Button,
   DialogActionTrigger,
   DialogTitle,
   Input,
   Text,
   VStack,
-  Box,
 } from "@chakra-ui/react"
 import { FaPlus } from "react-icons/fa"
 
-import { type RoleCreate, RolesService, RoleDirsService } from "@/client"
+import { type RoleCreate, RoleDirsService, RolesService } from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -32,13 +32,13 @@ const AddRole = () => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
-  
+
   // 获取角色分类列表
   const { data: roleDirsData } = useQuery({
     queryKey: ["roleDirs", "all"],
     queryFn: () => RoleDirsService.readRoleDirs({ skip: 0, limit: 100 }),
   })
-  
+
   const {
     register,
     handleSubmit,
@@ -88,23 +88,18 @@ const AddRole = () => {
       placement="center"
     >
       <DialogTrigger asChild>
-        <Button
-          variant="solid"
-          colorScheme="teal"
-          size="md"
-          mb={4}
-        >
+        <Button variant="solid" colorScheme="teal" size="md" mb={4}>
           <FaPlus fontSize="16px" />
           添加角色
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>添加角色</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -130,7 +125,7 @@ const AddRole = () => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="IP分类"
                 invalid={!!errors.ip_id}
@@ -141,7 +136,8 @@ const AddRole = () => {
                   <select
                     {...register("ip_id", {
                       required: "请选择IP分类",
-                      validate: (value) => Number(value) > 0 || "请选择有效的IP分类"
+                      validate: (value) =>
+                        Number(value) > 0 || "请选择有效的IP分类",
                     })}
                     style={{
                       width: "100%",
@@ -150,7 +146,7 @@ const AddRole = () => {
                       border: "1px solid #E2E8F0",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">请选择IP分类</option>
@@ -162,7 +158,7 @@ const AddRole = () => {
                   </select>
                 </Box>
               </Field>
-              
+
               <Field
                 label="创建端"
                 invalid={!!errors.create_from}
@@ -180,7 +176,7 @@ const AddRole = () => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="是否有提示词"
                 invalid={!!errors.has_prompts}
@@ -196,7 +192,7 @@ const AddRole = () => {
                       border: "1px solid #E2E8F0",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">请选择</option>
@@ -207,7 +203,7 @@ const AddRole = () => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -231,4 +227,4 @@ const AddRole = () => {
   )
 }
 
-export default AddRole 
+export default AddRole

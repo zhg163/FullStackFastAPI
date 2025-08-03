@@ -73,23 +73,18 @@ const AddRoleDir = () => {
       placement="center"
     >
       <DialogTrigger asChild>
-        <Button
-          variant="solid"
-          colorScheme="teal"
-          size="md"
-          mb={4}
-        >
+        <Button variant="solid" colorScheme="teal" size="md" mb={4}>
           <FaPlus fontSize="16px" />
           添加角色分类
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>添加角色分类</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -115,7 +110,7 @@ const AddRoleDir = () => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="IP描述"
                 invalid={!!errors.ip_desc}
@@ -135,7 +130,7 @@ const AddRoleDir = () => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -159,4 +154,4 @@ const AddRoleDir = () => {
   )
 }
 
-export default AddRoleDir 
+export default AddRoleDir

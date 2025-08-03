@@ -27,7 +27,7 @@ const DeleteRoleDir = ({ id }: { id: string }) => {
   } = useForm()
 
   const deleteRoleDir = async (id: string) => {
-    await RoleDirsService.deleteRoleDir({ roleDirId: parseInt(id) })
+    await RoleDirsService.deleteRoleDir({ roleDirId: Number.parseInt(id) })
   }
 
   const mutation = useMutation({
@@ -75,10 +75,7 @@ const DeleteRoleDir = ({ id }: { id: string }) => {
 
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
-              <Button
-                variant="outline"
-                disabled={isSubmitting}
-              >
+              <Button variant="outline" disabled={isSubmitting}>
                 取消
               </Button>
             </DialogActionTrigger>
@@ -98,4 +95,4 @@ const DeleteRoleDir = ({ id }: { id: string }) => {
   )
 }
 
-export default DeleteRoleDir 
+export default DeleteRoleDir

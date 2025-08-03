@@ -1,21 +1,33 @@
-import React, { useState } from "react"
-import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Grid, GridItem } from "@chakra-ui/react"
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  Input,
+  Table,
+} from "@chakra-ui/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import type React from "react"
+import { useState } from "react"
+import { FiRefreshCcw, FiSearch } from "react-icons/fi"
 import { z } from "zod"
-import { FiSearch, FiRefreshCcw } from "react-icons/fi"
 
-import { type RolePublic, RolesService, RoleDirsService } from "@/client"
-import AddRole from "@/components/Roles/AddRole"
+import { RoleDirsService, type RolePublic, RolesService } from "@/client"
 import { RoleActionsMenu } from "@/components/Common/RoleActionsMenu"
 import PendingRoles from "@/components/Pending/PendingRoles"
+import AddRole from "@/components/Roles/AddRole"
+import { Field } from "@/components/ui/field"
 import {
   PaginationItems,
   PaginationNextTrigger,
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination.tsx"
-import { Field } from "@/components/ui/field"
 
 const rolesSearchSchema = z.object({
   page: z.number().catch(1),
@@ -27,13 +39,13 @@ const rolesSearchSchema = z.object({
 
 const PER_PAGE = 5
 
-function getRolesQueryOptions({ 
-  page, 
-  name, 
+function getRolesQueryOptions({
+  page,
+  name,
   ip_id,
   create_from,
-  has_prompts
-}: { 
+  has_prompts,
+}: {
   page: number
   name?: string
   ip_id?: number
@@ -44,7 +56,7 @@ function getRolesQueryOptions({
     skip: (page - 1) * PER_PAGE,
     limit: PER_PAGE,
   }
-  
+
   if (name) params.name = name
   if (ip_id) params.ipId = ip_id
   if (create_from) params.createFrom = create_from
@@ -86,10 +98,10 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
   const handleSearch = () => {
     const filters: any = {}
     if (name.trim()) filters.name = name.trim()
-    if (ipId.trim()) filters.ip_id = parseInt(ipId.trim())
+    if (ipId.trim()) filters.ip_id = Number.parseInt(ipId.trim())
     if (createFrom.trim()) filters.create_from = createFrom.trim()
     if (hasPrompts) filters.has_prompts = hasPrompts
-    
+
     console.log("搜索条件:", filters)
     onSearch(filters)
   }
@@ -104,15 +116,17 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
 
   return (
     <Box p={6} bg="gray.50" borderRadius="lg" mb={6} shadow="sm">
-      <Heading size="md" mb={4} color="gray.700">搜索条件</Heading>
-      
-      <Grid 
-        templateColumns={{ 
-          base: "1fr", 
-          md: "repeat(2, 1fr)", 
-          lg: "repeat(4, 1fr)" 
-        }} 
-        gap={4} 
+      <Heading size="md" mb={4} color="gray.700">
+        搜索条件
+      </Heading>
+
+      <Grid
+        templateColumns={{
+          base: "1fr",
+          md: "repeat(2, 1fr)",
+          lg: "repeat(4, 1fr)",
+        }}
+        gap={4}
         mb={4}
       >
         <GridItem>
@@ -124,17 +138,22 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
             />
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="IP分类">
             <Box>
               <select
                 value={ipId}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIpId(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setIpId(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -142,7 +161,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">选择IP分类</option>
@@ -155,7 +174,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
             </Box>
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="创建端">
             <Input
@@ -165,17 +184,22 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
             />
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="是否有提示词">
             <Box>
               <select
                 value={hasPrompts}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setHasPrompts(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setHasPrompts(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -183,7 +207,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">选择状态</option>
@@ -194,7 +218,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           </Field>
         </GridItem>
       </Grid>
-      
+
       <Flex gap={3} justify={{ base: "center", md: "flex-start" }}>
         <Button
           colorScheme="blue"
@@ -205,12 +229,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           <FiSearch style={{ marginRight: "6px" }} />
           搜索
         </Button>
-        <Button
-          variant="outline"
-          onClick={handleReset}
-          size="md"
-          minW="100px"
-        >
+        <Button variant="outline" onClick={handleReset} size="md" minW="100px">
           <FiRefreshCcw style={{ marginRight: "6px" }} />
           重置
         </Button>
@@ -272,47 +291,70 @@ function RolesTable() {
   return (
     <>
       <SearchForm onSearch={handleSearch} onReset={handleReset} />
-      
+
       <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
           <Table.Row bg="gray.50">
-            <Table.ColumnHeader w="sm" fontWeight="bold">ID</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">角色名称</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">IP分类</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">创建端</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">有提示词</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">创建时间</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">操作</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              ID
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              角色名称
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              IP分类
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              创建端
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              有提示词
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              创建时间
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              操作
+            </Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {roles?.map((role) => (
-            <Table.Row key={role.id} opacity={isPlaceholderData ? 0.5 : 1} _hover={{ bg: "gray.50" }}>
+            <Table.Row
+              key={role.id}
+              opacity={isPlaceholderData ? 0.5 : 1}
+              _hover={{ bg: "gray.50" }}
+            >
               <Table.Cell>
                 <Badge colorScheme="blue">{role.id}</Badge>
               </Table.Cell>
-              <Table.Cell fontWeight="medium">
-                {role.name}
-              </Table.Cell>
-              <Table.Cell>
-                {role.role_dir?.ip || `ID:${role.ip_id}`}
-              </Table.Cell>
+              <Table.Cell fontWeight="medium">{role.name}</Table.Cell>
+              <Table.Cell>{role.role_dir?.ip || `ID:${role.ip_id}`}</Table.Cell>
               <Table.Cell color={!role.create_from ? "gray.500" : "inherit"}>
                 {role.create_from || "未指定"}
               </Table.Cell>
               <Table.Cell>
-                <Badge 
-                  colorScheme={role.has_prompts === "Y" ? "green" : role.has_prompts === "N" ? "red" : "gray"}
+                <Badge
+                  colorScheme={
+                    role.has_prompts === "Y"
+                      ? "green"
+                      : role.has_prompts === "N"
+                        ? "red"
+                        : "gray"
+                  }
                   variant="subtle"
                 >
-                  {role.has_prompts === "Y" ? "是" : role.has_prompts === "N" ? "否" : "未知"}
+                  {role.has_prompts === "Y"
+                    ? "是"
+                    : role.has_prompts === "N"
+                      ? "否"
+                      : "未知"}
                 </Badge>
               </Table.Cell>
               <Table.Cell>
-                {role.created_at 
-                  ? new Date(role.created_at).toLocaleString('zh-CN')
-                  : "未知"
-                }
+                {role.created_at
+                  ? new Date(role.created_at).toLocaleString("zh-CN")
+                  : "未知"}
               </Table.Cell>
               <Table.Cell>
                 <RoleActionsMenu role={role} />
@@ -321,7 +363,7 @@ function RolesTable() {
           ))}
         </Table.Body>
       </Table.Root>
-      
+
       {count > 0 && (
         <Flex justifyContent="flex-end" mt={4}>
           <PaginationRoot
@@ -337,10 +379,19 @@ function RolesTable() {
           </PaginationRoot>
         </Flex>
       )}
-      
+
       {count === 0 && (
-        <Box textAlign="center" py={8} color="gray.500" bg="white" borderRadius="md" shadow="sm">
-          {name || ip_id || create_from || has_prompts ? "未找到匹配的角色" : "暂无角色数据"}
+        <Box
+          textAlign="center"
+          py={8}
+          color="gray.500"
+          bg="white"
+          borderRadius="md"
+          shadow="sm"
+        >
+          {name || ip_id || create_from || has_prompts
+            ? "未找到匹配的角色"
+            : "暂无角色数据"}
         </Box>
       )}
     </>
@@ -358,4 +409,4 @@ function Roles() {
       <RolesTable />
     </Container>
   )
-} 
+}

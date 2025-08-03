@@ -14,7 +14,7 @@ import {
   DrawerRoot,
   DrawerTrigger,
 } from "../ui/drawer"
-import { SidebarItems, AdminItems } from "./SidebarItems"
+import { AdminItems, SidebarItems } from "./SidebarItems"
 
 const Sidebar = () => {
   const queryClient = useQueryClient()
@@ -51,14 +51,14 @@ const Sidebar = () => {
               <Box>
                 {/* 基础导航 */}
                 <SidebarItems onClose={() => setOpen(false)} />
-                
+
                 {/* 管理功能（仅超级用户可见） */}
                 {currentUser?.is_superuser && (
                   <Box mt={4}>
                     <AdminItems onClose={() => setOpen(false)} />
                   </Box>
                 )}
-                
+
                 {/* 退出登录 */}
                 <Flex
                   as="button"
@@ -100,7 +100,7 @@ const Sidebar = () => {
         <Flex w="100%" direction="column">
           {/* 基础导航 */}
           <SidebarItems />
-          
+
           {/* 管理功能（仅超级用户可见） */}
           {currentUser?.is_superuser && (
             <Box mt={4}>

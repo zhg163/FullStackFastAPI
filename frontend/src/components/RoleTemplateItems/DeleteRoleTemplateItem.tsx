@@ -1,6 +1,6 @@
-import React, { useState } from "react"
 import { Button, DialogTitle, Text } from "@chakra-ui/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import React, { useState } from "react"
 import { useForm } from "react-hook-form"
 import { FiTrash2 } from "react-icons/fi"
 
@@ -27,7 +27,9 @@ const DeleteRoleTemplateItem = ({ id }: { id: string }) => {
   } = useForm()
 
   const deleteRoleTemplateItem = async (id: string) => {
-    await RoleTemplateItemsService.deleteRoleTemplateItem({ roleTemplateItemId: parseInt(id) })
+    await RoleTemplateItemsService.deleteRoleTemplateItem({
+      roleTemplateItemId: Number.parseInt(id),
+    })
   }
 
   const mutation = useMutation({
@@ -75,10 +77,7 @@ const DeleteRoleTemplateItem = ({ id }: { id: string }) => {
 
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
-              <Button
-                variant="outline"
-                disabled={isSubmitting}
-              >
+              <Button variant="outline" disabled={isSubmitting}>
                 取消
               </Button>
             </DialogActionTrigger>
@@ -98,4 +97,4 @@ const DeleteRoleTemplateItem = ({ id }: { id: string }) => {
   )
 }
 
-export default DeleteRoleTemplateItem 
+export default DeleteRoleTemplateItem

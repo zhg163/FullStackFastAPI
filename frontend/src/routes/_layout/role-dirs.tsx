@@ -1,21 +1,33 @@
-import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Stack, Grid, GridItem } from "@chakra-ui/react"
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  Input,
+  Stack,
+  Table,
+} from "@chakra-ui/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { z } from "zod"
 import { useState } from "react"
-import { FiSearch, FiRefreshCcw } from "react-icons/fi"
+import { FiRefreshCcw, FiSearch } from "react-icons/fi"
+import { z } from "zod"
 
 import { type RoleDirPublic, RoleDirsService } from "@/client"
-import AddRoleDir from "@/components/RoleDirs/AddRoleDir"
 import { RoleDirActionsMenu } from "@/components/Common/RoleDirActionsMenu"
 import PendingRoleDirs from "@/components/Pending/PendingRoleDirs"
+import AddRoleDir from "@/components/RoleDirs/AddRoleDir"
+import { Field } from "@/components/ui/field"
 import {
   PaginationItems,
   PaginationNextTrigger,
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination.tsx"
-import { Field } from "@/components/ui/field"
 
 const roleDirsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -25,11 +37,11 @@ const roleDirsSearchSchema = z.object({
 
 const PER_PAGE = 5
 
-function getRoleDirsQueryOptions({ 
-  page, 
-  ip, 
-  ip_desc 
-}: { 
+function getRoleDirsQueryOptions({
+  page,
+  ip,
+  ip_desc,
+}: {
   page: number
   ip?: string
   ip_desc?: string
@@ -38,7 +50,7 @@ function getRoleDirsQueryOptions({
     skip: (page - 1) * PER_PAGE,
     limit: PER_PAGE,
   }
-  
+
   if (ip) params.ip = ip
   if (ip_desc) params.ipDesc = ip_desc
 
@@ -69,7 +81,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
     const filters: any = {}
     if (ip.trim()) filters.ip = ip.trim()
     if (ipDesc.trim()) filters.ip_desc = ipDesc.trim()
-    
+
     console.log("搜索条件:", filters)
     onSearch(filters)
   }
@@ -82,14 +94,16 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
 
   return (
     <Box p={6} bg="gray.50" borderRadius="lg" mb={6} shadow="sm">
-      <Heading size="md" mb={4} color="gray.700">搜索条件</Heading>
-      
-      <Grid 
-        templateColumns={{ 
-          base: "1fr", 
-          md: "repeat(2, 1fr)", 
-        }} 
-        gap={4} 
+      <Heading size="md" mb={4} color="gray.700">
+        搜索条件
+      </Heading>
+
+      <Grid
+        templateColumns={{
+          base: "1fr",
+          md: "repeat(2, 1fr)",
+        }}
+        gap={4}
         mb={4}
       >
         <GridItem>
@@ -101,11 +115,14 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
             />
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="IP描述">
             <Input
@@ -115,12 +132,15 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
             />
           </Field>
         </GridItem>
       </Grid>
-      
+
       <Flex gap={3} justify={{ base: "center", md: "flex-start" }}>
         <Button
           colorScheme="blue"
@@ -131,12 +151,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           <FiSearch style={{ marginRight: "6px" }} />
           搜索
         </Button>
-        <Button
-          variant="outline"
-          onClick={handleReset}
-          size="md"
-          minW="100px"
-        >
+        <Button variant="outline" onClick={handleReset} size="md" minW="100px">
           <FiRefreshCcw style={{ marginRight: "6px" }} />
           重置
         </Button>
@@ -196,34 +211,45 @@ function RoleDirsTable() {
   return (
     <>
       <SearchForm onSearch={handleSearch} onReset={handleReset} />
-      
+
       <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
           <Table.Row bg="gray.50">
-            <Table.ColumnHeader w="sm" fontWeight="bold">ID</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">IP分类名称</Table.ColumnHeader>
-            <Table.ColumnHeader w="lg" fontWeight="bold">IP描述</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">创建时间</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">操作</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              ID
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              IP分类名称
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="lg" fontWeight="bold">
+              IP描述
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              创建时间
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              操作
+            </Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {roleDirs?.map((roleDir) => (
-            <Table.Row key={roleDir.id} opacity={isPlaceholderData ? 0.5 : 1} _hover={{ bg: "gray.50" }}>
+            <Table.Row
+              key={roleDir.id}
+              opacity={isPlaceholderData ? 0.5 : 1}
+              _hover={{ bg: "gray.50" }}
+            >
               <Table.Cell>
                 <Badge colorScheme="blue">{roleDir.id}</Badge>
               </Table.Cell>
-              <Table.Cell fontWeight="medium">
-                {roleDir.ip}
-              </Table.Cell>
+              <Table.Cell fontWeight="medium">{roleDir.ip}</Table.Cell>
               <Table.Cell color={!roleDir.ip_desc ? "gray.500" : "inherit"}>
                 {roleDir.ip_desc || "暂无描述"}
               </Table.Cell>
               <Table.Cell>
-                {roleDir.created_at 
-                  ? new Date(roleDir.created_at).toLocaleString('zh-CN')
-                  : "未知"
-                }
+                {roleDir.created_at
+                  ? new Date(roleDir.created_at).toLocaleString("zh-CN")
+                  : "未知"}
               </Table.Cell>
               <Table.Cell>
                 <RoleDirActionsMenu roleDir={roleDir} />
@@ -232,7 +258,7 @@ function RoleDirsTable() {
           ))}
         </Table.Body>
       </Table.Root>
-      
+
       {count > 0 && (
         <Flex justifyContent="flex-end" mt={4}>
           <PaginationRoot
@@ -248,9 +274,16 @@ function RoleDirsTable() {
           </PaginationRoot>
         </Flex>
       )}
-      
+
       {count === 0 && (
-        <Box textAlign="center" py={8} color="gray.500" bg="white" borderRadius="md" shadow="sm">
+        <Box
+          textAlign="center"
+          py={8}
+          color="gray.500"
+          bg="white"
+          borderRadius="md"
+          shadow="sm"
+        >
           {ip || ip_desc ? "未找到匹配的角色分类" : "暂无角色分类数据"}
         </Box>
       )}
@@ -269,4 +302,4 @@ function RoleDirs() {
       <RoleDirsTable />
     </Container>
   )
-} 
+}

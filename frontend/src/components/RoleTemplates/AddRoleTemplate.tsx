@@ -1,19 +1,23 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import React, { useState } from "react"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import {
+  Box,
   Button,
   DialogActionTrigger,
   DialogTitle,
   Input,
   Text,
   VStack,
-  Box,
 } from "@chakra-ui/react"
 import { FaPlus } from "react-icons/fa"
 
-import { type RoleTemplateCreate, RoleTemplatesService, RolesService } from "@/client"
+import {
+  type RoleTemplateCreate,
+  RoleTemplatesService,
+  RolesService,
+} from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -32,13 +36,13 @@ const AddRoleTemplate = () => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
-  
+
   // 获取角色列表
   const { data: rolesData } = useQuery({
     queryKey: ["roles", "all"],
     queryFn: () => RolesService.readRoles({ skip: 0, limit: 100 }),
   })
-  
+
   const {
     register,
     handleSubmit,
@@ -87,23 +91,18 @@ const AddRoleTemplate = () => {
       placement="center"
     >
       <DialogTrigger asChild>
-        <Button
-          variant="solid"
-          colorScheme="teal"
-          size="md"
-          mb={4}
-        >
+        <Button variant="solid" colorScheme="teal" size="md" mb={4}>
           <FaPlus fontSize="16px" />
           添加角色模板
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>添加角色模板</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -116,7 +115,8 @@ const AddRoleTemplate = () => {
                   <select
                     {...register("role_id", {
                       required: "请选择关联角色",
-                      validate: (value) => Number(value) > 0 || "请选择有效的角色"
+                      validate: (value) =>
+                        Number(value) > 0 || "请选择有效的角色",
                     })}
                     style={{
                       width: "100%",
@@ -125,7 +125,7 @@ const AddRoleTemplate = () => {
                       border: "1px solid #E2E8F0",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">请选择角色</option>
@@ -137,7 +137,7 @@ const AddRoleTemplate = () => {
                   </select>
                 </Box>
               </Field>
-              
+
               <Field
                 label="模板名称"
                 invalid={!!errors.template_name}
@@ -155,7 +155,7 @@ const AddRoleTemplate = () => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="激活状态"
                 invalid={!!errors.is_active}
@@ -171,7 +171,7 @@ const AddRoleTemplate = () => {
                       border: "1px solid #E2E8F0",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">请选择</option>
@@ -182,7 +182,7 @@ const AddRoleTemplate = () => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -206,4 +206,4 @@ const AddRoleTemplate = () => {
   )
 }
 
-export default AddRoleTemplate 
+export default AddRoleTemplate

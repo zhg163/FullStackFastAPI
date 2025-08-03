@@ -1,20 +1,25 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import React, { useState } from "react"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import {
+  Box,
   Button,
   DialogActionTrigger,
   DialogTitle,
   Input,
   Text,
-  VStack,
-  Box,
   Textarea,
+  VStack,
 } from "@chakra-ui/react"
 import { FaEdit } from "react-icons/fa"
 
-import { type TaskCreatRolePromptPublic, type TaskCreatRolePromptUpdate, TaskCreatRolePromptsService, RolesService } from "@/client"
+import {
+  RolesService,
+  type TaskCreatRolePromptPublic,
+  type TaskCreatRolePromptUpdate,
+  TaskCreatRolePromptsService,
+} from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
@@ -38,13 +43,13 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
-  
+
   // 获取角色列表
   const { data: rolesData } = useQuery({
     queryKey: ["roles", "all"],
     queryFn: () => RolesService.readRoles({ skip: 0, limit: 100 }),
   })
-  
+
   const {
     register,
     handleSubmit,
@@ -61,10 +66,10 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
   })
 
   const [taskCmdText, setTaskCmdText] = useState(
-    JSON.stringify(task.task_cmd, null, 2) || ""
+    JSON.stringify(task.task_cmd, null, 2) || "",
   )
   const [roleItemPromptText, setRoleItemPromptText] = useState(
-    JSON.stringify(task.role_item_prompt, null, 2) || ""
+    JSON.stringify(task.role_item_prompt, null, 2) || "",
   )
 
   const mutation = useMutation({
@@ -89,13 +94,13 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
     // 解析JSON字段
     let taskCmd = {}
     let roleItemPrompt = {}
-    
+
     try {
       taskCmd = taskCmdText ? JSON.parse(taskCmdText) : {}
     } catch (error) {
       taskCmd = { command: taskCmdText }
     }
-    
+
     try {
       roleItemPrompt = roleItemPromptText ? JSON.parse(roleItemPromptText) : {}
     } catch (error) {
@@ -139,13 +144,13 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
           编辑任务
         </MenuItem>
       </DialogTrigger>
-      
+
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>编辑任务</DialogTitle>
           </DialogHeader>
-          
+
           <DialogBody>
             <VStack gap={4}>
               <Field
@@ -165,7 +170,7 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
                   type="text"
                 />
               </Field>
-              
+
               <Field
                 label="任务状态"
                 invalid={!!errors.task_state}
@@ -181,7 +186,7 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
                       border: "1px solid #E2E8F0",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">不更改</option>
@@ -208,7 +213,7 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
                       border: "1px solid #E2E8F0",
                       fontSize: "14px",
                       backgroundColor: "white",
-                      cursor: "pointer"
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">不更改</option>
@@ -220,10 +225,8 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
                   </select>
                 </Box>
               </Field>
-              
-              <Field
-                label="任务命令"
-              >
+
+              <Field label="任务命令">
                 <Textarea
                   value={taskCmdText}
                   onChange={(e) => setTaskCmdText(e.target.value)}
@@ -240,10 +243,8 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
                   请输入有效的JSON格式，或者普通文本（将自动转换为JSON）
                 </Text>
               </Field>
-              
-              <Field
-                label="角色条目提示词"
-              >
+
+              <Field label="角色条目提示词">
                 <Textarea
                   value={roleItemPromptText}
                   onChange={(e) => setRoleItemPromptText(e.target.value)}
@@ -262,7 +263,7 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
               </Field>
             </VStack>
           </DialogBody>
-          
+
           <DialogFooter gap={2}>
             <DialogActionTrigger asChild>
               <Button variant="outline" disabled={isSubmitting}>
@@ -285,4 +286,4 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
   )
 }
 
-export default EditTaskCreatRolePrompt 
+export default EditTaskCreatRolePrompt

@@ -1,21 +1,37 @@
-import React, { useState } from "react"
-import { Badge, Container, Flex, Heading, Table, Box, Input, Button, Grid, GridItem } from "@chakra-ui/react"
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  Input,
+  Table,
+} from "@chakra-ui/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import type React from "react"
+import { useState } from "react"
+import { FiRefreshCcw, FiSearch } from "react-icons/fi"
 import { z } from "zod"
-import { FiSearch, FiRefreshCcw } from "react-icons/fi"
 
-import { type RoleTemplateItemPublic, RoleTemplateItemsService, RoleTemplatesService } from "@/client"
-import AddRoleTemplateItem from "@/components/RoleTemplateItems/AddRoleTemplateItem"
+import {
+  type RoleTemplateItemPublic,
+  RoleTemplateItemsService,
+  RoleTemplatesService,
+} from "@/client"
 import { RoleTemplateItemActionsMenu } from "@/components/Common/RoleTemplateItemActionsMenu"
 import PendingRoleTemplateItems from "@/components/Pending/PendingRoleTemplateItems"
+import AddRoleTemplateItem from "@/components/RoleTemplateItems/AddRoleTemplateItem"
+import { Field } from "@/components/ui/field"
 import {
   PaginationItems,
   PaginationNextTrigger,
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination.tsx"
-import { Field } from "@/components/ui/field"
 
 const roleTemplateItemsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -25,11 +41,11 @@ const roleTemplateItemsSearchSchema = z.object({
 
 const PER_PAGE = 5
 
-function getRoleTemplateItemsQueryOptions({ 
-  page, 
-  item_name, 
+function getRoleTemplateItemsQueryOptions({
+  page,
+  item_name,
   role_tmp_id,
-}: { 
+}: {
   page: number
   item_name?: string
   role_tmp_id?: number
@@ -38,7 +54,7 @@ function getRoleTemplateItemsQueryOptions({
     skip: (page - 1) * PER_PAGE,
     limit: PER_PAGE,
   }
-  
+
   if (item_name) params.itemName = item_name
   if (role_tmp_id) params.roleTmpId = role_tmp_id
 
@@ -68,14 +84,16 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
   // 获取角色模板列表用于下拉选择
   const { data: roleTemplatesData } = useQuery({
     queryKey: ["role-templates", "all"],
-    queryFn: () => RoleTemplatesService.readRoleTemplates({ skip: 0, limit: 100 }),
+    queryFn: () =>
+      RoleTemplatesService.readRoleTemplates({ skip: 0, limit: 100 }),
   })
 
   const handleSearch = () => {
     const filters: any = {}
     if (itemName.trim()) filters.item_name = itemName.trim()
-    if (roleTmpId.trim()) filters.role_tmp_id = parseInt(roleTmpId.trim())
-    
+    if (roleTmpId.trim())
+      filters.role_tmp_id = Number.parseInt(roleTmpId.trim())
+
     console.log("搜索条件:", filters)
     onSearch(filters)
   }
@@ -88,14 +106,16 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
 
   return (
     <Box p={6} bg="gray.50" borderRadius="lg" mb={6} shadow="sm">
-      <Heading size="md" mb={4} color="gray.700">搜索条件</Heading>
-      
-      <Grid 
-        templateColumns={{ 
-          base: "1fr", 
-          md: "repeat(2, 1fr)" 
-        }} 
-        gap={4} 
+      <Heading size="md" mb={4} color="gray.700">
+        搜索条件
+      </Heading>
+
+      <Grid
+        templateColumns={{
+          base: "1fr",
+          md: "repeat(2, 1fr)",
+        }}
+        gap={4}
         mb={4}
       >
         <GridItem>
@@ -107,17 +127,22 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
-              _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px blue.500",
+              }}
             />
           </Field>
         </GridItem>
-        
+
         <GridItem>
           <Field label="所属模板">
             <Box>
               <select
                 value={roleTmpId}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRoleTmpId(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setRoleTmpId(e.target.value)
+                }
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -125,13 +150,14 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                   border: "1px solid #E2E8F0",
                   fontSize: "14px",
                   backgroundColor: "white",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 <option value="">选择角色模板</option>
                 {roleTemplatesData?.data.map((template) => (
                   <option key={template.id} value={template.id}>
-                    {template.template_name || `ID:${template.id}`} - {template.role?.name}
+                    {template.template_name || `ID:${template.id}`} -{" "}
+                    {template.role?.name}
                   </option>
                 ))}
               </select>
@@ -139,7 +165,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           </Field>
         </GridItem>
       </Grid>
-      
+
       <Flex gap={3} justify={{ base: "center", md: "flex-start" }}>
         <Button
           colorScheme="blue"
@@ -150,12 +176,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           <FiSearch style={{ marginRight: "6px" }} />
           搜索
         </Button>
-        <Button
-          variant="outline"
-          onClick={handleReset}
-          size="md"
-          minW="100px"
-        >
+        <Button variant="outline" onClick={handleReset} size="md" minW="100px">
           <FiRefreshCcw style={{ marginRight: "6px" }} />
           重置
         </Button>
@@ -201,7 +222,10 @@ function RoleTemplateItemsTable() {
   const count = data?.count ?? 0
 
   console.log("当前搜索参数:", { page, item_name, role_tmp_id })
-  console.log("查询结果:", { roleTemplateItems: roleTemplateItems.length, count })
+  console.log("查询结果:", {
+    roleTemplateItems: roleTemplateItems.length,
+    count,
+  })
 
   if (isLoading) {
     return (
@@ -215,36 +239,50 @@ function RoleTemplateItemsTable() {
   return (
     <>
       <SearchForm onSearch={handleSearch} onReset={handleReset} />
-      
+
       <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
           <Table.Row bg="gray.50">
-            <Table.ColumnHeader w="sm" fontWeight="bold">ID</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">条目名称</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">所属模板</Table.ColumnHeader>
-            <Table.ColumnHeader w="lg" fontWeight="bold">提示词描述</Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">创建时间</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm" fontWeight="bold">操作</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              ID
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              条目名称
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              所属模板
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="lg" fontWeight="bold">
+              提示词描述
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="md" fontWeight="bold">
+              创建时间
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" fontWeight="bold">
+              操作
+            </Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {roleTemplateItems?.map((item) => (
-            <Table.Row key={item.id} opacity={isPlaceholderData ? 0.5 : 1} _hover={{ bg: "gray.50" }}>
+            <Table.Row
+              key={item.id}
+              opacity={isPlaceholderData ? 0.5 : 1}
+              _hover={{ bg: "gray.50" }}
+            >
               <Table.Cell>
                 <Badge colorScheme="purple">{item.id}</Badge>
               </Table.Cell>
-              <Table.Cell fontWeight="medium">
-                {item.item_name}
-              </Table.Cell>
+              <Table.Cell fontWeight="medium">{item.item_name}</Table.Cell>
               <Table.Cell>
-                {item.template?.template_name || "未知模板"} 
+                {item.template?.template_name || "未知模板"}
                 {item.template?.role?.name && ` (${item.template.role.name})`}
               </Table.Cell>
               <Table.Cell>
-                <Box 
-                  maxW="200px" 
-                  overflow="hidden" 
-                  textOverflow="ellipsis" 
+                <Box
+                  maxW="200px"
+                  overflow="hidden"
+                  textOverflow="ellipsis"
                   whiteSpace="nowrap"
                   title={item.item_prompt_desc || ""}
                 >
@@ -252,10 +290,9 @@ function RoleTemplateItemsTable() {
                 </Box>
               </Table.Cell>
               <Table.Cell>
-                {item.created_at 
-                  ? new Date(item.created_at).toLocaleString('zh-CN')
-                  : "未知"
-                }
+                {item.created_at
+                  ? new Date(item.created_at).toLocaleString("zh-CN")
+                  : "未知"}
               </Table.Cell>
               <Table.Cell>
                 <RoleTemplateItemActionsMenu item={item} />
@@ -264,7 +301,7 @@ function RoleTemplateItemsTable() {
           ))}
         </Table.Body>
       </Table.Root>
-      
+
       {count > 0 && (
         <Flex justifyContent="flex-end" mt={4}>
           <PaginationRoot
@@ -280,10 +317,19 @@ function RoleTemplateItemsTable() {
           </PaginationRoot>
         </Flex>
       )}
-      
+
       {count === 0 && (
-        <Box textAlign="center" py={8} color="gray.500" bg="white" borderRadius="md" shadow="sm">
-          {item_name || role_tmp_id ? "未找到匹配的模板条目" : "暂无模板条目数据"}
+        <Box
+          textAlign="center"
+          py={8}
+          color="gray.500"
+          bg="white"
+          borderRadius="md"
+          shadow="sm"
+        >
+          {item_name || role_tmp_id
+            ? "未找到匹配的模板条目"
+            : "暂无模板条目数据"}
         </Box>
       )}
     </>
@@ -301,4 +347,4 @@ function RoleTemplateItems() {
       <RoleTemplateItemsTable />
     </Container>
   )
-} 
+}
