@@ -27,6 +27,19 @@ fastapi dev app/main.py &
 uv run fastapi dev app/main.py
 
 
+# 1. 安装依赖
+cd backend && uv sync
+
+# 2. 启动Redis
+redis-server
+
+# 3. 启动FastAPI
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# 4. 启动RQ Workers
+bash scripts/start_rq_workers.sh
+
+
 cd ../frontend  
 npm install
 npm run dev &

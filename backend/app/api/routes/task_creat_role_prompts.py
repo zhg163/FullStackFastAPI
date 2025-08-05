@@ -1,4 +1,5 @@
 from typing import Any
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import col, delete, func, select
@@ -132,4 +133,90 @@ def delete_task_creat_role_prompt(task_prompt_id: int, session: SessionDep) -> A
     
     session.delete(task_prompt)
     session.commit()
-    return {"message": "Task prompt deleted successfully"} 
+    return {"message": "Task prompt deleted successfully"}
+
+
+@router.post("/{id}/start", dependencies=[Depends(get_current_active_superuser)])
+def start_task_creat_role_prompt(
+    session: SessionDep,
+    id: int,
+) -> Any:
+    """
+    启动指定的角色创建提示词任务
+    """
+    # 查找任务
+    task_prompt = session.get(TaskCreatRolePrompt, id)
+    if not task_prompt:
+        raise HTTPException(status_code=404, detail="Task prompt not found")
+    
+    # 检查任务状态 - 允许待启动和失败的任务启动/重新启动
+    if task_prompt.task_state not in ["P", "F"]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot start task in current state: {task_prompt.task_state}. Only tasks in 'P' (pending) or 'F' (failed) state can be started."
+        )
+    
+    # 更新任务状态为等待中
+    task_prompt.task_state = "W"
+    session.add(task_prompt)
+    session.commit()
+    session.refresh(task_prompt)
+    
+    # 在后台执行任务
+    try:
+        from app.services.simple_task_executor import execute_task_background
+        execute_task_background(task_prompt.id)
+    except Exception as e:
+        # 如果启动失败，将任务状态改为失败
+        task_prompt.task_state = "F"
+        task_prompt.role_item_prompt = {"error": f"启动失败: {str(e)}", "failed_at": datetime.now().isoformat()}
+        session.add(task_prompt)
+        session.commit()
+        raise HTTPException(status_code=500, detail=f"Failed to start task: {str(e)}")
+    
+    return {
+        "message": "Task started successfully",
+        "task_id": task_prompt.id,
+        "new_state": task_prompt.task_state
+    }
+
+
+@router.post("/{id}/stop", dependencies=[Depends(get_current_active_superuser)])
+def stop_task_creat_role_prompt(
+    session: SessionDep,
+    id: int,
+) -> Any:
+    """
+    停止指定的角色创建提示词任务
+    """
+    # 查找任务
+    task_prompt = session.get(TaskCreatRolePrompt, id)
+    if not task_prompt:
+        raise HTTPException(status_code=404, detail="Task prompt not found")
+    
+    # 检查任务状态 - 只有运行中或等待中的任务才能停止
+    if task_prompt.task_state not in ["W", "R"]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot stop task in current state: {task_prompt.task_state}. Only tasks in 'W' (waiting) or 'R' (running) state can be stopped."
+        )
+    
+    # 记录停止前的状态
+    previous_state = task_prompt.task_state
+    
+    # 更新任务状态为失败，并记录停止原因
+    task_prompt.task_state = "F"
+    task_prompt.role_item_prompt = {
+        "error": "任务被用户手动停止", 
+        "stopped_at": datetime.now().isoformat(),
+        "previous_state": previous_state
+    }
+    session.add(task_prompt)
+    session.commit()
+    session.refresh(task_prompt)
+    
+    return {
+        "message": "Task stopped successfully",
+        "task_id": task_prompt.id,
+        "new_state": task_prompt.task_state
+    } 

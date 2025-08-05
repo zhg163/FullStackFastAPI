@@ -94,6 +94,37 @@ class Settings(BaseSettings):
     EMAIL_TEST_USER: EmailStr = "test@example.com"
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
+    
+    # 批量任务调度系统配置
+    # Redis配置
+    REDIS_URL: str = "redis://localhost:6379/0"
+    RQ_QUEUE_NAME: str = "ai_tasks"
+    
+    # 批次执行配置
+    BATCH_MAX_CONCURRENT: int = 5
+    BATCH_TIMEOUT_MINUTES: int = 120
+    BATCH_RETRY_ATTEMPTS: int = 3
+    
+    # API客户端配置
+    DEFAULT_API_PROVIDER: str = "qwen"  # qwen, deepseek, mock
+    API_RATE_LIMIT: int = 60  # requests per minute
+    API_FAILURE_THRESHOLD: int = 5
+    API_CIRCUIT_TIMEOUT: int = 60
+    API_CACHE_TTL: int = 3600
+    
+    # 千问配置
+    QWEN_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    QWEN_API_KEY: str = ""
+    QIANWEN_MODEL_NAME: str = "qwen-max"
+    QWEN_MAX_TOKENS: int = 1000
+    QWEN_TEMPERATURE: float = 0.7
+    
+    # DeepSeek配置
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com/v1"
+    DEEPSEEK_API_KEY: str = ""
+    DEEPSEEK_MODEL_NAME: str = "deepseek-chat"
+    DEEPSEEK_MAX_TOKENS: int = 1000
+    DEEPSEEK_TEMPERATURE: float = 0.7
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":

@@ -280,6 +280,8 @@ function TaskCreatRolePromptsTable() {
         return { label: "失败", color: "red" }
       case "W":
         return { label: "等待中", color: "yellow" }
+      case "R":
+        return { label: "运行中", color: "blue" }
       default:
         return { label: "未知", color: "gray" }
     }

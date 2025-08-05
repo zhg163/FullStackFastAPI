@@ -5,6 +5,8 @@ import { FaEllipsisV } from "react-icons/fa"
 import type { TaskCreatRolePromptPublic } from "@/client"
 import DeleteTaskCreatRolePrompt from "../TaskCreatRolePrompts/DeleteTaskCreatRolePrompt"
 import EditTaskCreatRolePrompt from "../TaskCreatRolePrompts/EditTaskCreatRolePrompt"
+import StartTaskCreatRolePrompt from "../TaskCreatRolePrompts/StartTaskCreatRolePrompt"
+import StopTaskCreatRolePrompt from "../TaskCreatRolePrompts/StopTaskCreatRolePrompt"
 import { MenuContent, MenuRoot, MenuTrigger } from "../ui/menu"
 
 interface TaskCreatRolePromptActionsMenuProps {
@@ -24,6 +26,8 @@ export const TaskCreatRolePromptActionsMenu = ({
         </IconButton>
       </MenuTrigger>
       <MenuContent>
+        <StartTaskCreatRolePrompt task={task} />
+        <StopTaskCreatRolePrompt task={task} />
         <EditTaskCreatRolePrompt task={task} />
         <DeleteTaskCreatRolePrompt id={task.id.toString()} />
       </MenuContent>
