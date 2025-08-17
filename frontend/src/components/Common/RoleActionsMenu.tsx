@@ -1,10 +1,11 @@
 import { IconButton } from "@chakra-ui/react"
-import React from "react"
+import React, { useState } from "react"
 import { FaEllipsisV } from "react-icons/fa"
 
 import type { RolePublic } from "@/client"
 import DeleteRole from "../Roles/DeleteRole"
 import EditRole from "../Roles/EditRole"
+import GraphicEditRole from "../Roles/GraphicEditRole"
 import { MenuContent, MenuRoot, MenuTrigger } from "../ui/menu"
 
 interface RoleActionsMenuProps {
@@ -22,6 +23,7 @@ export const RoleActionsMenu = ({ role, disabled }: RoleActionsMenuProps) => {
       </MenuTrigger>
       <MenuContent>
         <EditRole role={role} />
+        <GraphicEditRole role={role} />
         <DeleteRole id={role.id.toString()} />
       </MenuContent>
     </MenuRoot>

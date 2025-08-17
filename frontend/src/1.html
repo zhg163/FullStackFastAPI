@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>多区域 JSON 编辑器（去掉类型选择版｜修复添加按钮）</title>
+<style>
+  :root{--bg:#0b1020;--card:#0f172a;--muted:#94a3b8;--text:#e5e7eb;--line:#1f2937;--accent:#22d3ee}
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0b1020,#0a0f1c);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;color:var(--text)}
+  header{position:sticky;top:0;background:rgba(11,16,32,.8);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:10}
+  .wrap{max-width:1100px;margin:0 auto;padding:16px}
+  h1{margin:0;font-size:18px}
+  .sub{color:var(--muted);font-size:12px}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  button{background:#0ea5b1;border:1px solid #0891b2;color:white;border-radius:12px;padding:8px 12px;font-size:12px;cursor:pointer}
+  button.ghost{background:transparent;border-color:#374151;color:#cbd5e1}
+  button.warn{background:#ef4444;border-color:#dc2626}
+  .container{max-width:1100px;margin:0 auto;padding:16px;display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+  .pad{padding:14px}
+  .area{border:1px solid #1e293b;border-radius:12px;padding:12px;margin:12px 0;background:#0b1428}
+  .area-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .node{border:1px dashed #263244;border-radius:10px;padding:10px;margin:8px 0;background:#0b1220}
+  .kv{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .children{margin-top:8px;margin-left:18px;border-left:2px solid #1e293b;padding-left:10px;display:none}
+  input[type=text]{background:#0b1020;border:1px solid #2a3446;color:#e5e7eb;border-radius:10px;padding:6px 8px;font-size:12px;min-width:140px}
+  .mini{font-size:11px;color:#a5b4fc}
+  textarea.code{width:100%;height:430px;background:#0b1020;border:1px solid #2a3446;border-radius:12px;color:#e5e7eb;padding:12px;font-family:ui-monospace,Consolas,Menlo,monospace;font-size:12px}
+  .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .pill{border:1px solid #334155;border-radius:999px;padding:2px 8px;font-size:11px;color:#cbd5e1}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>多区域 JSON 编辑器（去掉类型选择版）</h1>
+    <div class="sub">多个区域，每个区域一个 key；任意层支持对象或数组，值类型自动识别</div>
+    <div class="actions">
+      <button id="addArea">＋ 添加区域</button>
+      <input id="file" type="file" />
+      <button id="importBtn" class="ghost">导入文件</button>
+      <button id="pasteBtn" class="ghost">粘贴导入</button>
+      <button id="expandAll" class="ghost">展开全部</button>
+      <button id="collapseAll" class="ghost">折叠全部</button>
+      <button id="clearAll" class="warn">清空全部</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <div class="pad">
+      <div id="areas"></div>
+      <div class="actions">
+        <button id="exportBtn">导出 JSON</button>
+        <button id="copyBtn" class="ghost">复制 JSON</button>
+      </div>
+    </div>
+  </section>
+  <aside class="card">
+    <div class="pad">
+      <div class="row mini">预览会随改动自动更新</div>
+      <textarea id="output" class="code" readonly></textarea>
+    </div>
+  </aside>
+</main>
+
+<script>
+const $ = (s, el=document)=> el.querySelector(s);
+const $$ = (s, el=document)=> Array.from(el.querySelectorAll(s));
+
+function toast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg; t.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111827;border:1px solid #334155;padding:8px 12px;border-radius:999px;color:#e5e7eb;font-size:12px;z-index:9999';
+  document.body.appendChild(t); setTimeout(()=>t.remove(),1400);
+}
+
+// 将输入尝试解析为 JS 原始类型；失败则保留字符串
+function tryParse(val){
+  if(val.trim()==="") return "";
+  try{ return JSON.parse(val); }
+  catch{ return val; }
+}
+
+// ===== UI 生成 =====
+function addArea(key='', value={}){
+  const wrap = document.createElement('div');
+  wrap.className='area';
+
+  const head = document.createElement('div');
+  head.className='area-head';
+  const title = document.createElement('span'); title.textContent='区域'; title.className='mini';
+  const del = document.createElement('button'); del.textContent='删除区域'; del.className='ghost';
+  del.onclick=()=>{wrap.remove(); updateOutput(); };
+  head.append(title, del);
+
+  const body = document.createElement('div');
+  const node = createPair(key, value, true); // 根：KV
+  body.appendChild(node);
+
+  wrap.append(head, body);
+  $('#areas').appendChild(wrap);
+  updateOutput();
+}
+
+function createPair(key='', value='', isRoot=false){
+  const el = document.createElement('div');
+  el.className='node pair';
+
+  const row = document.createElement('div'); row.className='kv';
+  const keyI = document.createElement('input'); keyI.placeholder='key'; keyI.value=key; keyI.oninput=updateOutput;
+  const primInput = document.createElement('input'); primInput.placeholder='value'; primInput.oninput=updateOutput;
+
+  const objBox = document.createElement('div'); objBox.className='children';
+  const arrBox = document.createElement('div'); arrBox.className='children';
+
+  // 工具按钮
+  const addFieldBtn = document.createElement('button'); addFieldBtn.textContent='＋ 字段'; addFieldBtn.className='ghost';
+  const addPrimItemBtn = document.createElement('button'); addPrimItemBtn.textContent='＋ 原始项'; addPrimItemBtn.className='ghost';
+  const addObjItemBtn = document.createElement('button'); addObjItemBtn.textContent='＋ 对象项'; addObjItemBtn.className='ghost';
+
+  const delBtn = document.createElement('button'); delBtn.textContent='删除'; delBtn.className='ghost';
+  delBtn.onclick=()=>{ el.remove(); updateOutput(); };
+  if(isRoot) delBtn.style.display='none';
+
+  row.append('{ ', keyI, ' : ', primInput, delBtn);
+  el.append(row, objBox, arrBox);
+
+  const objTools = document.createElement('div'); objTools.className='row'; objTools.append(addFieldBtn);
+  el.appendChild(objTools);
+  const arrTools = document.createElement('div'); arrTools.className='row'; arrTools.append(addPrimItemBtn, addObjItemBtn);
+  el.appendChild(arrTools);
+
+  // 模式切换：primitive / object / array（仅影响可见性，不影响导出判定）
+  function setMode(mode){
+    el.dataset.mode = mode;
+    if(mode==='primitive'){
+      primInput.style.display='inline-block';
+      objBox.style.display='none';
+      arrBox.style.display='none';
+    }else if(mode==='object'){
+      primInput.style.display='none';
+      objBox.style.display='block';
+      arrBox.style.display='none';
+    }else if(mode==='array'){
+      primInput.style.display='none';
+      objBox.style.display='none';
+      arrBox.style.display='block';
+    }
+  }
+
+  // 点击按钮时自动切换到对应模式（修复“按钮无效”）
+  addFieldBtn.onclick=()=>{
+    setMode('object');
+    objBox.appendChild(createPair());
+    updateOutput();
+  };
+  addPrimItemBtn.onclick=()=>{
+    setMode('array');
+    arrBox.appendChild(createArrayPrimItem());
+    updateOutput();
+  };
+  addObjItemBtn.onclick=()=>{
+    setMode('array');
+    arrBox.appendChild(createArrayObjItem());
+    updateOutput();
+  };
+
+  // 根据初始值初始化
+  if(Array.isArray(value)){
+    setMode('array');
+    value.forEach(item=>{
+      if(item && typeof item==='object' && !Array.isArray(item)){
+        arrBox.appendChild(createArrayObjItem(item));
+      }else{
+        arrBox.appendChild(createArrayPrimItem(item));
+      }
+    });
+  }else if(value && typeof value==='object'){
+    setMode('object');
+    Object.entries(value).forEach(([k,v])=> objBox.appendChild(createPair(k,v)) );
+  }else{
+    setMode('primitive');
+    primInput.value = (value===null? 'null' : String(value));
+  }
+
+  el._refs = { keyI, primInput, objBox, arrBox };
+  return el;
+}
+
+function createArrayPrimItem(v=''){
+  const row = document.createElement('div'); row.className='row arr-prim';
+  const input = document.createElement('input'); input.placeholder='值';
+  if(v!==undefined){ input.value = (v===null? 'null' : String(v)); }
+  input.oninput=updateOutput;
+  const del = document.createElement('button'); del.textContent='删除'; del.className='ghost';
+  del.onclick=()=>{ row.remove(); updateOutput(); };
+  row.append(input, del);
+  row._refs = { input };
+  return row;
+}
+
+function createArrayObjItem(obj={}){
+  const box = document.createElement('div'); box.className='node arr-obj';
+  const fields = document.createElement('div'); fields.className='children'; fields.style.display='block';
+  const tools = document.createElement('div'); tools.className='row';
+  const add = document.createElement('button'); add.textContent='＋ 字段'; add.className='ghost';
+  const del = document.createElement('button'); del.textContent='删除对象'; del.className='ghost';
+
+  add.onclick=()=>{ fields.appendChild(createPair()); updateOutput(); };
+  del.onclick=()=>{ box.remove(); updateOutput(); };
+
+  tools.append(add, del);
+  box.append('{对象: ', fields, '}', tools);
+  Object.entries(obj).forEach(([k,v])=> fields.appendChild(createPair(k,v)) );
+  return box;
+}
+
+// ===== 导出 =====
+function collectPair(el){
+  const { keyI, primInput, objBox, arrBox } = el._refs;
+  const k = keyI.value || '';
+  if(!k) return null;
+
+  const hasObj = $$('.pair', objBox).length > 0;
+  const hasArr = $$('.arr-prim, .arr-obj', arrBox).length > 0;
+
+  if(hasObj){
+    const obj={};
+    $$('.pair', objBox).forEach(p=>{ const ent=collectPair(p); if(ent) Object.assign(obj, ent); });
+    return { [k]: obj };
+  }else if(hasArr){
+    const arr=[];
+    $$('.arr-prim', arrBox).forEach(r=>{ const {input}=r._refs; arr.push(tryParse(input.value)); });
+    $$('.arr-obj', arrBox).forEach(o=>{
+      const tmp={};
+      $$('.pair', o).forEach(p=>{ const ent=collectPair(p); if(ent) Object.assign(tmp, ent); });
+      arr.push(tmp);
+    });
+    return { [k]: arr };
+  }else{
+    return { [k]: tryParse(primInput.value) };
+  }
+}
+
+function buildJSON(){
+  const result={};
+  $$('.area').forEach(area=>{
+    const rootPair = $('.pair', area);
+    const ent = collectPair(rootPair);
+    if(ent) Object.assign(result, ent);
+  });
+  return result;
+}
+
+function updateOutput(){
+  const data = buildJSON();
+  $('#output').value = JSON.stringify(data, null, 2);
+}
+
+// ===== 导入 =====
+function importObject(obj){
+  $('#areas').innerHTML='';
+  Object.entries(obj).forEach(([k,v])=> addArea(k,v));
+  updateOutput();
+}
+
+// ===== 事件绑定 =====
+$('#addArea').onclick=()=> addArea();
+$('#exportBtn').onclick=()=>{
+  const data = $('#output').value; const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='data.json'; a.click(); URL.revokeObjectURL(url);
+};
+$('#copyBtn').onclick=async()=>{ await navigator.clipboard.writeText($('#output').value); toast('已复制 JSON'); };
+$('#clearAll').onclick=()=>{ $('#areas').innerHTML=''; updateOutput(); };
+$('#expandAll').onclick=()=> $$('.children').forEach(c=>c.style.display='block');
+$('#collapseAll').onclick=()=> $$('.children').forEach(c=>c.style.display='none');
+
+$('#importBtn').onclick=()=>{ const f=$('#file').files[0]; if(!f){ toast('请选择 JSON 文件'); return; } const r=new FileReader(); r.onload=e=>{ try{ const data=JSON.parse(e.target.result); importObject(data);}catch(err){ toast('JSON 解析失败'); } }; r.readAsText(f); };
+$('#pasteBtn').onclick=()=>{
+  const txt = prompt('粘贴 JSON 文本：'); if(!txt) return; try{ const data=JSON.parse(txt); importObject(data);}catch(err){ toast('JSON 解析失败'); }
+};
+
+// 初始空预览
+updateOutput();
+</script>
+</body>
+</html>

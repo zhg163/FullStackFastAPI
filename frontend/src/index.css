@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Chakra UI 和 Tailwind CSS 兼容性样式 */
+.chakra-ui-light,
+.chakra-ui-dark {
+  /* 确保 Tailwind 样式不被 Chakra UI 覆盖 */
+}
+
+/* 阿米娅编辑器特定样式 */
+.amiya-editor {
+  /* 可以在这里添加自定义样式 */
+}

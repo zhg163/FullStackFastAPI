@@ -11,8 +11,9 @@ import { routeTree } from "./routeTree.gen"
 
 import { ApiError, OpenAPI } from "./client"
 import { CustomProvider } from "./components/ui/provider"
+import "./index.css"
 
-OpenAPI.BASE = (import.meta as any).env.VITE_API_URL || "http://localhost:8000"
+OpenAPI.BASE = (import.meta as any).env.VITE_API_URL || ""
 OpenAPI.TOKEN = async () => {
   return localStorage.getItem("access_token") || ""
 }

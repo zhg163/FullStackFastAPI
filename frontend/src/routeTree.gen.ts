@@ -26,6 +26,7 @@ import { Route as LayoutRolePromptsImport } from './routes/_layout/role-prompts'
 import { Route as LayoutRoleDirsImport } from './routes/_layout/role-dirs'
 import { Route as LayoutPromptGeneratorImport } from './routes/_layout/prompt-generator'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
+import { Route as LayoutAmiyaEditorImport } from './routes/_layout/amiya-editor'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
 
 // Create/Update Routes
@@ -107,6 +108,11 @@ const LayoutItemsRoute = LayoutItemsImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutAmiyaEditorRoute = LayoutAmiyaEditorImport.update({
+  path: '/amiya-editor',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
 const LayoutAdminRoute = LayoutAdminImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
@@ -138,6 +144,10 @@ declare module '@tanstack/react-router' {
     }
     '/_layout/admin': {
       preLoaderRoute: typeof LayoutAdminImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/amiya-editor': {
+      preLoaderRoute: typeof LayoutAmiyaEditorImport
       parentRoute: typeof LayoutImport
     }
     '/_layout/items': {
@@ -188,6 +198,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren([
   LayoutRoute.addChildren([
     LayoutAdminRoute,
+    LayoutAmiyaEditorRoute,
     LayoutItemsRoute,
     LayoutPromptGeneratorRoute,
     LayoutRoleDirsRoute,

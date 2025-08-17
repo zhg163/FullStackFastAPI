@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router"
 import {
   FiBriefcase,
   FiClipboard,
+  FiEdit3,
   FiHome,
   FiLayers,
   FiList,
@@ -17,6 +18,7 @@ import type { UserPublic } from "@/client"
 const items = [
   { icon: FiHome, title: "首页", path: "/" },
   { icon: FiBriefcase, title: "项目", path: "/items" },
+  { icon: FiEdit3, title: "阿米娅编辑器", path: "/amiya-editor" },
   { icon: FiSettings, title: "设置", path: "/settings" },
 ]
 
@@ -137,6 +139,7 @@ const UserMenu = ({ user, onClose }: UserMenuProps) => {
             title: "任务管理",
             path: "/task-creat-role-prompts",
           },
+          { icon: FiZap, title: "批量生成", path: "/prompt-generator" },
         ]
       : []),
   ]
