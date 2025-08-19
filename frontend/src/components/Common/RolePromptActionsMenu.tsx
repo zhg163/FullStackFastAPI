@@ -1,10 +1,10 @@
 import { IconButton } from "@chakra-ui/react"
-import React from "react"
 import { FaEllipsisV } from "react-icons/fa"
 
 import type { RolePromptPublic } from "@/client"
 import DeleteRolePrompt from "../RolePrompts/DeleteRolePrompt"
 import EditRolePrompt from "../RolePrompts/EditRolePrompt"
+import GraphicEditRolePrompt from "../RolePrompts/GraphicEditRolePrompt"
 import { MenuContent, MenuRoot, MenuTrigger } from "../ui/menu"
 
 interface RolePromptActionsMenuProps {
@@ -25,6 +25,7 @@ export const RolePromptActionsMenu = ({
       </MenuTrigger>
       <MenuContent>
         <EditRolePrompt prompt={prompt} />
+        <GraphicEditRolePrompt prompt={prompt} />
         <DeleteRolePrompt id={prompt.id.toString()} />
       </MenuContent>
     </MenuRoot>

@@ -220,12 +220,29 @@ export default function AmiyaEditor() {
 
     const objTools = document.createElement('div')
     objTools.style.cssText = 'display: flex; gap: 6px; margin-top: 6px;'
-    objTools.appendChild(addFieldBtn)
+    
+    // 创建数组项按钮 - 将当前字段设为数组模式
+    const addArrayBtn = createButton('+ 数组项', 'ghost')
+    addArrayBtn.onclick = () => {
+      setMode('array')
+      // 不添加任何内容，创建空数组结构
+      updateOutput()
+    }
+    
+    objTools.append(addFieldBtn, addArrayBtn)
     el.appendChild(objTools)
 
     const arrTools = document.createElement('div')
     arrTools.style.cssText = 'display: flex; gap: 6px; margin-top: 6px;'
-    arrTools.append(addPrimItemBtn, addObjItemBtn)
+    
+    // 创建原始值按钮 - 只在数组模式下显示
+    const addPrimitiveBtn = createButton('+ 原始值', 'ghost')
+    addPrimitiveBtn.onclick = () => {
+      arrBox.appendChild(createArrayPrimItem())
+      updateOutput()
+    }
+    
+    arrTools.append(addPrimitiveBtn, addPrimItemBtn, addObjItemBtn)
     el.appendChild(arrTools)
 
     // 模式切换函数 - 性能关键

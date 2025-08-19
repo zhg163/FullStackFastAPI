@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState, useRef, useEffect, useCallback } from "react"
 import {
   Box,
@@ -13,8 +13,7 @@ import { FiEdit, FiSave } from "react-icons/fi"
 
 import {
   RolePromptsService,
-  type RolePublic,
-  type RolePromptCreate,
+  type RolePromptPublic,
   type RolePromptUpdate,
 } from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
@@ -30,50 +29,28 @@ import {
 import { toaster } from "@/components/ui/toaster"
 import { MenuItem } from "../ui/menu"
 
-interface GraphicEditRoleProps {
-  role: RolePublic
+interface GraphicEditRolePromptProps {
+  prompt: RolePromptPublic
 }
 
-const GraphicEditRole = ({ role }: GraphicEditRoleProps) => {
+const GraphicEditRolePrompt = ({ prompt }: GraphicEditRolePromptProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
   const areasRef = useRef<HTMLDivElement>(null)
   const outputRef = useRef<HTMLTextAreaElement>(null)
 
-  // 获取该角色的提示词数据
-  const { data: rolePromptsData, isLoading } = useQuery({
-    queryKey: ["rolePrompts", role.id],
-    queryFn: () => RolePromptsService.readRolePrompts({ 
-      roleId: role.id,
-      isActive: "Y"
-    }),
-    enabled: isOpen, // 只有弹窗打开时才查询
-  })
-
-  // 创建角色提示词的 mutation
-  const createMutation = useMutation({
-    mutationFn: (data: RolePromptCreate) =>
-      RolePromptsService.createRolePrompt({ requestBody: data }),
-    onSuccess: () => {
-      showSuccessToast("角色JSON数据创建成功")
-      queryClient.invalidateQueries({ queryKey: ["rolePrompts"] })
-    },
-    onError: (err: ApiError) => {
-      handleError(err)
-    },
-  })
-
   // 更新角色提示词的 mutation
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: RolePromptUpdate }) =>
+    mutationFn: (data: RolePromptUpdate) =>
       RolePromptsService.updateRolePrompt({ 
-        rolePromptId: id, 
+        rolePromptId: prompt.id, 
         requestBody: data 
       }),
     onSuccess: () => {
-      showSuccessToast("角色JSON数据更新成功")
+      showSuccessToast("角色提示词更新成功")
       queryClient.invalidateQueries({ queryKey: ["rolePrompts"] })
+      setIsOpen(false)
     },
     onError: (err: ApiError) => {
       handleError(err)
@@ -555,41 +532,34 @@ const GraphicEditRole = ({ role }: GraphicEditRoleProps) => {
     
     try {
       const jsonData = JSON.parse(outputRef.current.value)
-      const existingPrompt = rolePromptsData?.data?.[0]
       
-      if (existingPrompt) {
-        // 更新现有的提示词
-        updateMutation.mutate({
-          id: existingPrompt.id,
-          data: {
-            role_id: role.id,
-            version: existingPrompt.version + 1,
-            user_prompt: jsonData,
-            is_active: "Y"
-          }
-        })
-      } else {
-        // 创建新的提示词
-        createMutation.mutate({
-          role_id: role.id,
-          version: 1,
-          user_prompt: jsonData,
-          is_active: "Y"
-        })
-      }
+      // 更新现有的提示词
+      updateMutation.mutate({
+        role_id: prompt.role_id,
+        version: prompt.version + 1,
+        user_prompt: jsonData,
+        is_active: prompt.is_active
+      })
     } catch (err) {
       showToast('JSON 格式错误，请检查编辑器内容')
     }
-  }, [role.id, rolePromptsData, createMutation, updateMutation, showToast])
+  }, [prompt, updateMutation, showToast])
 
-  // 当弹窗打开且有数据时，加载现有的 JSON 数据
+  // 当弹窗打开时，加载现有的 JSON 数据
   useEffect(() => {
-    if (isOpen && rolePromptsData?.data?.[0]?.user_prompt) {
-      importObject(rolePromptsData.data[0].user_prompt)
-    } else if (isOpen) {
-      updateOutput()
+    if (isOpen) {
+      // 延迟执行，确保DOM已经渲染
+      setTimeout(() => {
+        if (prompt.user_prompt && typeof prompt.user_prompt === 'object') {
+          console.log('Loading user_prompt:', prompt.user_prompt)
+          importObject(prompt.user_prompt)
+        } else {
+          console.log('No user_prompt data, initializing empty editor')
+          updateOutput()
+        }
+      }, 100)
     }
-  }, [isOpen, rolePromptsData, importObject, updateOutput])
+  }, [isOpen, prompt.user_prompt, importObject, updateOutput])
 
   return (
     <>
@@ -601,105 +571,99 @@ const GraphicEditRole = ({ role }: GraphicEditRoleProps) => {
       <DialogRoot size="full" open={isOpen} onOpenChange={({ open }) => setIsOpen(open)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>图形编辑 - {role.name}</DialogTitle>
+            <DialogTitle>图形编辑提示词 - 版本 {prompt.version}</DialogTitle>
           </DialogHeader>
           
           <DialogBody>
-            {isLoading ? (
-              <Box textAlign="center" py={8}>
-                <Text>加载中...</Text>
+            <Box>
+              {/* 头部工具栏 */}
+              <Box
+                bg="rgba(26, 32, 44, 0.8)"
+                backdropFilter="blur(8px)"
+                borderBottom="1px solid"
+                borderColor="gray.600"
+                p={4}
+                borderRadius="md"
+                mb={4}
+              >
+                <Flex gap={2} wrap="wrap">
+                  <Button onClick={handleAddArea} size="sm">
+                    + 添加区域
+                  </Button>
+                  <Button onClick={handleClearAll} variant="outline" size="sm" colorScheme="red">
+                    清空全部
+                  </Button>
+                  <Button 
+                    onClick={handleSaveUpdate} 
+                    size="sm" 
+                    colorScheme="green"
+                    loading={updateMutation.isPending}
+                  >
+                    <FiSave /> 保存更新
+                  </Button>
+                </Flex>
               </Box>
-            ) : (
-              <Box>
-                {/* 头部工具栏 */}
+
+              {/* 主要内容 */}
+              <Grid templateColumns={{ base: "1fr", lg: "1.2fr 0.8fr" }} gap={6}>
+                {/* 编辑区域 */}
                 <Box
-                  bg="rgba(26, 32, 44, 0.8)"
-                  backdropFilter="blur(8px)"
-                  borderBottom="1px solid"
+                  bg="gray.800"
+                  border="1px solid"
                   borderColor="gray.600"
+                  borderRadius="lg"
                   p={4}
-                  borderRadius="md"
-                  mb={4}
+                  height="60vh"
+                  display="flex"
+                  flexDirection="column"
                 >
-                  <Flex gap={2} wrap="wrap">
-                    <Button onClick={handleAddArea} size="sm">
-                      + 添加区域
-                    </Button>
-                    <Button onClick={handleClearAll} variant="outline" size="sm" colorScheme="red">
-                      清空全部
-                    </Button>
-                    <Button 
-                      onClick={handleSaveUpdate} 
-                      size="sm" 
-                      colorScheme="green"
-                      loading={createMutation.isPending || updateMutation.isPending}
-                    >
-                      <FiSave /> 保存更新
-                    </Button>
-                  </Flex>
+                  <Box
+                    flex="1"
+                    overflowY="auto"
+                    style={{
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: '#4a5568 #2d3748'
+                    }}
+                  >
+                    <div ref={areasRef} />
+                  </Box>
                 </Box>
 
-                {/* 主要内容 */}
-                <Grid templateColumns={{ base: "1fr", lg: "1.2fr 0.8fr" }} gap={6}>
-                  {/* 编辑区域 */}
-                  <Box
-                    bg="gray.800"
-                    border="1px solid"
-                    borderColor="gray.600"
-                    borderRadius="lg"
-                    p={4}
-                    height="60vh"
-                    display="flex"
-                    flexDirection="column"
-                  >
-                    <Box
-                      flex="1"
-                      overflowY="auto"
-                      style={{
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: '#4a5568 #2d3748'
-                      }}
-                    >
-                      <div ref={areasRef} />
-                    </Box>
-                  </Box>
-
-                  {/* 预览区域 */}
-                  <Box
-                    bg="gray.800"
-                    border="1px solid"
-                    borderColor="gray.600"
-                    borderRadius="lg"
-                    p={4}
-                    height="60vh"
-                    display="flex"
-                    flexDirection="column"
-                  >
-                    <Text fontSize="xs" color="gray.400" mb={2} flexShrink={0}>
-                      JSON 预览
-                    </Text>
-                    <textarea
-                      ref={outputRef}
-                      style={{
-                        width: '100%',
-                        flex: '1',
-                        background: '#1a202c',
-                        border: '1px solid #4a5568',
-                        borderRadius: '8px',
-                        color: '#e2e8f0',
-                        padding: '12px',
-                        fontFamily: 'ui-monospace, Consolas, Menlo, monospace',
-                        fontSize: '12px',
-                        resize: 'none',
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: '#4a5568 #2d3748'
-                      }}
-                      readOnly
-                    />
-                  </Box>
-                </Grid>
-              </Box>
-            )}
+                {/* 预览区域 */}
+                <Box
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="gray.600"
+                  borderRadius="lg"
+                  p={4}
+                  height="60vh"
+                  display="flex"
+                  flexDirection="column"
+                >
+                  <Text fontSize="xs" color="gray.400" mb={2} flexShrink={0}>
+                    JSON 预览
+                  </Text>
+                  <textarea
+                    ref={outputRef}
+                    style={{
+                      width: '100%',
+                      flex: '1',
+                      background: '#1a202c',
+                      border: '1px solid #4a5568',
+                      borderRadius: '8px',
+                      color: '#e2e8f0',
+                      padding: '12px',
+                      fontFamily: 'ui-monospace, Consolas, Menlo, monospace',
+                      fontSize: '12px',
+                      resize: 'none',
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: '#4a5568 #2d3748'
+                    }}
+                    readOnly
+                  />
+                </Box>
+              </Grid>
+            </Box>
           </DialogBody>
 
           <DialogFooter>
@@ -713,4 +677,4 @@ const GraphicEditRole = ({ role }: GraphicEditRoleProps) => {
   )
 }
 
-export default GraphicEditRole
+export default GraphicEditRolePrompt
