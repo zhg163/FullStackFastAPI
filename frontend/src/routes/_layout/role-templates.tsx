@@ -20,7 +20,6 @@ import { z } from "zod"
 import {
   type RoleTemplatePublic,
   RoleTemplatesService,
-  RolesService,
 } from "@/client"
 import { RoleTemplateActionsMenu } from "@/components/Common/RoleTemplateActionsMenu"
 import PendingRoleTemplates from "@/components/Pending/PendingRoleTemplates"
@@ -36,7 +35,6 @@ import {
 const roleTemplatesSearchSchema = z.object({
   page: z.number().catch(1),
   template_name: z.string().optional(),
-  role_id: z.number().optional(),
   is_active: z.string().optional(),
 })
 
@@ -45,12 +43,10 @@ const PER_PAGE = 5
 function getRoleTemplatesQueryOptions({
   page,
   template_name,
-  role_id,
   is_active,
 }: {
   page: number
   template_name?: string
-  role_id?: number
   is_active?: string
 }) {
   const params: any = {
@@ -59,12 +55,11 @@ function getRoleTemplatesQueryOptions({
   }
 
   if (template_name) params.templateName = template_name
-  if (role_id) params.roleId = role_id
   if (is_active) params.isActive = is_active
 
   return {
     queryFn: () => RoleTemplatesService.readRoleTemplates(params),
-    queryKey: ["role-templates", { page, template_name, role_id, is_active }],
+    queryKey: ["role-templates", { page, template_name, is_active }],
   }
 }
 
@@ -76,7 +71,6 @@ export const Route = createFileRoute("/_layout/role-templates")({
 interface SearchFormProps {
   onSearch: (filters: {
     template_name?: string
-    role_id?: number
     is_active?: string
   }) => void
   onReset: () => void
@@ -84,19 +78,11 @@ interface SearchFormProps {
 
 function SearchForm({ onSearch, onReset }: SearchFormProps) {
   const [templateName, setTemplateName] = useState("")
-  const [roleId, setRoleId] = useState("")
   const [isActive, setIsActive] = useState("")
-
-  // 获取角色列表用于下拉选择
-  const { data: rolesData } = useQuery({
-    queryKey: ["roles", "all"],
-    queryFn: () => RolesService.readRoles({ skip: 0, limit: 100 }),
-  })
 
   const handleSearch = () => {
     const filters: any = {}
     if (templateName.trim()) filters.template_name = templateName.trim()
-    if (roleId.trim()) filters.role_id = Number.parseInt(roleId.trim())
     if (isActive) filters.is_active = isActive
 
     console.log("搜索条件:", filters)
@@ -105,7 +91,6 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
 
   const handleReset = () => {
     setTemplateName("")
-    setRoleId("")
     setIsActive("")
     onReset()
   }
@@ -120,7 +105,6 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
         templateColumns={{
           base: "1fr",
           md: "repeat(2, 1fr)",
-          lg: "repeat(3, 1fr)",
         }}
         gap={4}
         mb={4}
@@ -142,34 +126,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
           </Field>
         </GridItem>
 
-        <GridItem>
-          <Field label="关联角色">
-            <Box>
-              <select
-                value={roleId}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setRoleId(e.target.value)
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  borderRadius: "6px",
-                  border: "1px solid #E2E8F0",
-                  fontSize: "14px",
-                  backgroundColor: "white",
-                  cursor: "pointer",
-                }}
-              >
-                <option value="">选择角色</option>
-                {rolesData?.data.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
-            </Box>
-          </Field>
-        </GridItem>
+
 
         <GridItem>
           <Field label="激活状态">
@@ -221,13 +178,12 @@ function RoleTemplatesTable() {
   const queryClient = useQueryClient()
   const navigate = useNavigate({ from: Route.fullPath })
   const searchParams = Route.useSearch()
-  const { page, template_name, role_id, is_active } = searchParams
+  const { page, template_name, is_active } = searchParams
 
   const { data, isLoading, isPlaceholderData } = useQuery({
     ...getRoleTemplatesQueryOptions({
       page,
       template_name,
-      role_id,
       is_active,
     }),
     placeholderData: (prevData) => prevData,
@@ -240,7 +196,6 @@ function RoleTemplatesTable() {
 
   const handleSearch = (filters: {
     template_name?: string
-    role_id?: number
     is_active?: string
   }) => {
     console.log("执行搜索:", filters)
@@ -259,7 +214,7 @@ function RoleTemplatesTable() {
   const roleTemplates = data?.data.slice(0, PER_PAGE) ?? []
   const count = data?.count ?? 0
 
-  console.log("当前搜索参数:", { page, template_name, role_id, is_active })
+  console.log("当前搜索参数:", { page, template_name, is_active })
   console.log("查询结果:", { roleTemplates: roleTemplates.length, count })
 
   if (isLoading) {
@@ -284,9 +239,7 @@ function RoleTemplatesTable() {
             <Table.ColumnHeader w="md" fontWeight="bold">
               模板名称
             </Table.ColumnHeader>
-            <Table.ColumnHeader w="md" fontWeight="bold">
-              关联角色
-            </Table.ColumnHeader>
+
             <Table.ColumnHeader w="sm" fontWeight="bold">
               激活状态
             </Table.ColumnHeader>
@@ -311,9 +264,7 @@ function RoleTemplatesTable() {
               <Table.Cell fontWeight="medium">
                 {template.template_name || "未设置"}
               </Table.Cell>
-              <Table.Cell>
-                {template.role?.name || `ID:${template.role_id}`}
-              </Table.Cell>
+
               <Table.Cell>
                 <Badge
                   colorScheme={
@@ -370,7 +321,7 @@ function RoleTemplatesTable() {
           borderRadius="md"
           shadow="sm"
         >
-          {template_name || role_id || is_active
+          {template_name || is_active
             ? "未找到匹配的角色模板"
             : "暂无角色模板数据"}
         </Box>

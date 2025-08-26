@@ -27,7 +27,6 @@ def read_role_templates(
     skip: int = 0,
     limit: int = 100,
     template_name: str | None = Query(None, description="搜索模板名称（模糊匹配）"),
-    role_id: int | None = Query(None, description="角色ID筛选"),
     is_active: str | None = Query(None, description="激活状态筛选(Y/N)"),
 ) -> Any:
     """
@@ -39,15 +38,12 @@ def read_role_templates(
     
     if template_name:
         conditions.append(col(RoleTemplate.template_name).icontains(template_name))
-    
-    if role_id:
-        conditions.append(RoleTemplate.role_id == role_id)
         
     if is_active:
         conditions.append(RoleTemplate.is_active == is_active)
 
-    # 构建基础查询，包含关联查询
-    base_query = select(RoleTemplate).join(Role, RoleTemplate.role_id == Role.id, isouter=True)
+    # 构建基础查询，不再强制JOIN角色表
+    base_query = select(RoleTemplate)
     count_query = select(func.count()).select_from(RoleTemplate)
     
     # 应用过滤条件

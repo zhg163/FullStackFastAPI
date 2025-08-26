@@ -16,7 +16,6 @@ import { FaPlus } from "react-icons/fa"
 import {
   type RoleTemplateCreate,
   RoleTemplatesService,
-  RolesService,
 } from "@/client"
 import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -37,11 +36,7 @@ const AddRoleTemplate = () => {
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
 
-  // 获取角色列表
-  const { data: rolesData } = useQuery({
-    queryKey: ["roles", "all"],
-    queryFn: () => RolesService.readRoles({ skip: 0, limit: 100 }),
-  })
+
 
   const {
     register,
@@ -52,7 +47,6 @@ const AddRoleTemplate = () => {
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
-      role_id: 0,
       template_name: "",
       is_active: "",
     },
@@ -75,12 +69,7 @@ const AddRoleTemplate = () => {
   })
 
   const onSubmit: SubmitHandler<RoleTemplateCreate> = (data) => {
-    // 确保role_id是数字类型
-    const submitData = {
-      ...data,
-      role_id: Number(data.role_id),
-    }
-    mutation.mutate(submitData)
+    mutation.mutate(data)
   }
 
   return (
@@ -105,39 +94,6 @@ const AddRoleTemplate = () => {
 
           <DialogBody>
             <VStack gap={4}>
-              <Field
-                label="关联角色"
-                invalid={!!errors.role_id}
-                errorText={errors.role_id?.message}
-                required
-              >
-                <Box>
-                  <select
-                    {...register("role_id", {
-                      required: "请选择关联角色",
-                      validate: (value) =>
-                        Number(value) > 0 || "请选择有效的角色",
-                    })}
-                    style={{
-                      width: "100%",
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      border: "1px solid #E2E8F0",
-                      fontSize: "14px",
-                      backgroundColor: "white",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <option value="">请选择角色</option>
-                    {rolesData?.data.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.name}
-                      </option>
-                    ))}
-                  </select>
-                </Box>
-              </Field>
-
               <Field
                 label="模板名称"
                 invalid={!!errors.template_name}

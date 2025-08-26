@@ -201,12 +201,12 @@ class NewPassword(SQLModel):
 
 # RoleTemplate models - 角色模板
 class RoleTemplateBase(SQLModel):
-    role_id: int = Field(description="星图角色ID（关联roles表）")
+    role_id: int | None = Field(default=None, description="星图角色ID（关联roles表）")
     template_name: str | None = Field(default=None, max_length=255, description="模板名称")
     is_active: str | None = Field(default=None, max_length=1, description="是否激活(Y/N)")
 
 class RoleTemplateCreate(RoleTemplateBase):
-    pass
+    role_id: int | None = Field(default=None, description="星图角色ID（关联roles表）")
 
 class RoleTemplateUpdate(RoleTemplateBase):
     role_id: int | None = Field(default=None, description="星图角色ID（关联roles表）")
@@ -215,7 +215,7 @@ class RoleTemplate(RoleTemplateBase, table=True):
     __tablename__ = "role_template"
     id: int = Field(primary_key=True)
     created_at: datetime | None = Field(default_factory=datetime.now)
-    role_id: int = Field(foreign_key="roles.id", description="星图角色ID")
+    role_id: int | None = Field(default=None, foreign_key="roles.id", description="星图角色ID")
     role: Role | None = Relationship(back_populates="templates")
     items: list["RoleTemplateItem"] = Relationship(back_populates="template", cascade_delete=True)
 

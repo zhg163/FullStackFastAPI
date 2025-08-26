@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import {
   Box,
   Button,
@@ -7,9 +7,19 @@ import {
   DialogRoot,
   Text,
   Flex,
+  VStack,
+  HStack,
   Grid,
+  Input,
+  Badge,
 } from "@chakra-ui/react"
-import { FiEdit, FiSave } from "react-icons/fi"
+import { 
+  FiEdit, 
+  FiSave,
+  FiChevronDown,
+  FiChevronRight,
+  FiX
+} from "react-icons/fi"
 
 import {
   RolePromptsService,
@@ -33,19 +43,33 @@ interface GraphicEditRolePromptProps {
   prompt: RolePromptPublic
 }
 
+interface JsonNode {
+  [key: string]: any
+}
+
+interface JsonStats {
+  nodes: number
+  objects: number
+  arrays: number
+  chars: number
+}
+
+type NodeType = 'string' | 'number' | 'boolean' | 'null' | 'object' | 'array'
+
 const GraphicEditRolePrompt = ({ prompt }: GraphicEditRolePromptProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
-  const areasRef = useRef<HTMLDivElement>(null)
-  const outputRef = useRef<HTMLTextAreaElement>(null)
+  const [jsonData, setJsonData] = useState<JsonNode>({})
+  const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set())
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // 更新角色提示词的 mutation
   const updateMutation = useMutation({
     mutationFn: (data: RolePromptUpdate) =>
-      RolePromptsService.updateRolePrompt({ 
-        rolePromptId: prompt.id, 
-        requestBody: data 
+      RolePromptsService.updateRolePrompt({
+        rolePromptId: prompt.id,
+        requestBody: data
       }),
     onSuccess: () => {
       showSuccessToast("角色提示词更新成功")
@@ -57,483 +81,521 @@ const GraphicEditRolePrompt = ({ prompt }: GraphicEditRolePromptProps) => {
     },
   })
 
-  // 高性能的类型解析函数
-  const tryParse = useCallback((val: string) => {
-    if (val.trim() === "") return ""
-    try { 
-      return JSON.parse(val) 
-    } catch { 
-      return val 
-    }
+  // 获取数据类型
+  const getType = useCallback((value: any): NodeType => {
+    if (value === null) return 'null'
+    if (Array.isArray(value)) return 'array'
+    return typeof value as NodeType
   }, [])
 
-  // 显示提示消息
-  const showToast = useCallback((message: string) => {
-    toaster.create({
-      title: message,
-      duration: 1400,
-    })
-  }, [])
-
-  // 创建区域的核心函数
-  const createArea = useCallback((key = '', value = {}) => {
-    if (!areasRef.current) return
-
-    const wrap = document.createElement('div')
-    wrap.className = 'amiya-area'
-    wrap.style.cssText = `
-      border: 1px solid #2d3748;
-      border-radius: 12px;
-      padding: 12px;
-      margin: 12px 0;
-      background: #1a202c;
-    `
-
-    // 区域头部
-    const head = document.createElement('div')
-    head.style.cssText = 'display: flex; align-items: center; gap: 8px; margin-bottom: 8px;'
+  // 计算统计信息
+  const getStats = useCallback((data: any): JsonStats => {
+    const stats: JsonStats = { nodes: 0, objects: 0, arrays: 0, chars: 0 }
     
-    const title = document.createElement('span')
-    title.textContent = '区域'
-    title.style.cssText = 'font-size: 11px; color: #a0aec0;'
-    
-    const expandBtn = document.createElement('button')
-    expandBtn.textContent = '区域展开'
-    expandBtn.style.cssText = `
-      background: transparent;
-      border: 1px solid #4a5568;
-      color: #cbd5e1;
-      border-radius: 6px;
-      padding: 4px 8px;
-      font-size: 11px;
-      cursor: pointer;
-      margin-right: 4px;
-    `
-    
-    const collapseBtn = document.createElement('button')
-    collapseBtn.textContent = '区域折叠'
-    collapseBtn.style.cssText = `
-      background: transparent;
-      border: 1px solid #4a5568;
-      color: #cbd5e1;
-      border-radius: 6px;
-      padding: 4px 8px;
-      font-size: 11px;
-      cursor: pointer;
-      margin-right: 4px;
-    `
-    
-    const delBtn = document.createElement('button')
-    delBtn.textContent = '删除区域'
-    delBtn.style.cssText = `
-      background: transparent;
-      border: 1px solid #4a5568;
-      color: #cbd5e1;
-      border-radius: 6px;
-      padding: 4px 8px;
-      font-size: 11px;
-      cursor: pointer;
-    `
-    
-    expandBtn.onclick = () => {
-      wrap.querySelectorAll('[style*="display: none"]').forEach((el: any) => {
-        if (el.style.cssText.includes('margin-top: 8px')) {
-          el.style.display = 'block'
-        }
-      })
-    }
-    
-    collapseBtn.onclick = () => {
-      wrap.querySelectorAll('[style*="margin-top: 8px"]').forEach((el: any) => {
-        if (el.style.cssText.includes('margin-left: 18px')) {
-          el.style.display = 'none'
-        }
-      })
-    }
-    
-    delBtn.onclick = () => {
-      wrap.remove()
-      updateOutput()
-    }
-
-    head.append(title, expandBtn, collapseBtn, delBtn)
-
-    // 区域主体
-    const body = document.createElement('div')
-    const node = createPair(key, value, true)
-    body.appendChild(node)
-
-    wrap.append(head, body)
-    areasRef.current.appendChild(wrap)
-    updateOutput()
-  }, [])
-
-  // 创建键值对节点 - 核心性能优化函数
-  const createPair = useCallback((key = '', value: any = '', isRoot = false) => {
-    const el = document.createElement('div')
-    el.className = 'amiya-pair'
-    el.style.cssText = `
-      border: 1px dashed #4a5568;
-      border-radius: 10px;
-      padding: 10px;
-      margin: 8px 0;
-      background: #171923;
-    `
-
-    const row = document.createElement('div')
-    row.style.cssText = 'display: flex; gap: 6px; align-items: center; flex-wrap: wrap;'
-
-    const keyInput = document.createElement('input')
-    keyInput.placeholder = 'key'
-    keyInput.value = key
-    keyInput.style.cssText = `
-      background: #1a202c;
-      border: 1px solid #4a5568;
-      color: #e2e8f0;
-      border-radius: 6px;
-      padding: 4px 6px;
-      font-size: 12px;
-      min-width: 100px;
-    `
-    keyInput.oninput = () => updateOutput()
-
-    const primInput = document.createElement('input')
-    primInput.placeholder = 'value'
-    primInput.style.cssText = keyInput.style.cssText
-    primInput.oninput = () => updateOutput()
-
-    const objBox = document.createElement('div')
-    objBox.style.cssText = `
-      margin-top: 8px;
-      margin-left: 18px;
-      border-left: 2px solid #2d3748;
-      padding-left: 10px;
-      display: none;
-    `
-
-    const arrBox = document.createElement('div')
-    arrBox.style.cssText = objBox.style.cssText
-
-    // 工具按钮
-    const createButton = (text: string, className = '') => {
-      const btn = document.createElement('button')
-      btn.textContent = text
-      btn.style.cssText = `
-        background: ${className === 'warn' ? '#e53e3e' : className === 'ghost' ? 'transparent' : '#3182ce'};
-        border: 1px solid ${className === 'warn' ? '#c53030' : className === 'ghost' ? '#4a5568' : '#2b6cb0'};
-        color: #fff;
-        border-radius: 6px;
-        padding: 4px 8px;
-        font-size: 11px;
-        cursor: pointer;
-        margin: 2px;
-      `
-      return btn
-    }
-
-    const addFieldBtn = createButton('+ 字段', 'ghost')
-    const addPrimItemBtn = createButton('+ 原始项', 'ghost')
-    const addObjItemBtn = createButton('+ 对象项', 'ghost')
-    const delBtn = createButton('删除', 'ghost')
-
-    if (isRoot) delBtn.style.display = 'none'
-
-    delBtn.onclick = () => {
-      el.remove()
-      updateOutput()
-    }
-
-    // 添加视觉分隔符
-    const colon = document.createElement('span')
-    colon.textContent = ': '
-    colon.style.cssText = 'color: #a0aec0; font-size: 12px;'
-
-    row.append(keyInput, colon, primInput, delBtn)
-    el.append(row, objBox, arrBox)
-
-    const objTools = document.createElement('div')
-    objTools.style.cssText = 'display: flex; gap: 6px; margin-top: 6px;'
-    
-    // 创建数组项按钮 - 将当前字段设为数组模式
-    const addArrayBtn = createButton('+ 数组项', 'ghost')
-    addArrayBtn.onclick = () => {
-      setMode('array')
-      // 不添加任何内容，创建空数组结构
-      updateOutput()
-    }
-    
-    objTools.append(addFieldBtn, addArrayBtn)
-    el.appendChild(objTools)
-
-    const arrTools = document.createElement('div')
-    arrTools.style.cssText = 'display: flex; gap: 6px; margin-top: 6px;'
-    
-    // 创建原始值按钮 - 只在数组模式下显示
-    const addPrimitiveBtn = createButton('+ 原始值', 'ghost')
-    addPrimitiveBtn.onclick = () => {
-      arrBox.appendChild(createArrayPrimItem())
-      updateOutput()
-    }
-    
-    arrTools.append(addPrimitiveBtn, addPrimItemBtn, addObjItemBtn)
-    el.appendChild(arrTools)
-
-    // 模式切换函数
-    const setMode = (mode: 'primitive' | 'object' | 'array') => {
-      el.dataset.mode = mode
-      if (mode === 'primitive') {
-        primInput.style.display = 'inline-block'
-        objBox.style.display = 'none'
-        arrBox.style.display = 'none'
-        objTools.style.display = 'none'
-        arrTools.style.display = 'none'
-      } else if (mode === 'object') {
-        primInput.style.display = 'none'
-        objBox.style.display = 'block'
-        arrBox.style.display = 'none'
-        objTools.style.display = 'flex'
-        arrTools.style.display = 'none'
-      } else if (mode === 'array') {
-        primInput.style.display = 'none'
-        objBox.style.display = 'none'
-        arrBox.style.display = 'block'
-        objTools.style.display = 'none'
-        arrTools.style.display = 'flex'
+    const count = (obj: any) => {
+      if (obj === null || obj === undefined) {
+        stats.nodes++
+        return
+      }
+      
+      if (Array.isArray(obj)) {
+        stats.arrays++
+        stats.nodes++
+        obj.forEach(count)
+      } else if (typeof obj === 'object') {
+        stats.objects++
+        stats.nodes++
+        Object.values(obj).forEach(count)
+      } else {
+        stats.nodes++
       }
     }
-
-    // 事件处理
-    addFieldBtn.onclick = () => {
-      setMode('object')
-      objBox.appendChild(createPair())
-      updateOutput()
-    }
-
-    addPrimItemBtn.onclick = () => {
-      setMode('array')
-      arrBox.appendChild(createArrayPrimItem())
-      updateOutput()
-    }
-
-    addObjItemBtn.onclick = () => {
-      setMode('array')
-      arrBox.appendChild(createArrayObjItem())
-      updateOutput()
-    }
-
-    // 根据初始值初始化
-    if (Array.isArray(value)) {
-      setMode('array')
-      value.forEach(item => {
-        if (item && typeof item === 'object' && !Array.isArray(item)) {
-          arrBox.appendChild(createArrayObjItem(item))
-        } else {
-          arrBox.appendChild(createArrayPrimItem(item))
-        }
-      })
-    } else if (value && typeof value === 'object') {
-      setMode('object')
-      Object.entries(value).forEach(([k, v]) => objBox.appendChild(createPair(k, v)))
-    } else {
-      setMode('primitive')
-      primInput.value = (value === null ? 'null' : String(value))
-    }
-
-    // 保存引用以便后续访问
-    ;(el as any)._refs = { keyInput, primInput, objBox, arrBox }
-    return el
-  }, [])
-
-  // 创建数组原始项
-  const createArrayPrimItem = useCallback((v: any = '') => {
-    const row = document.createElement('div')
-    row.className = 'arr-prim'
-    row.style.cssText = 'display: flex; gap: 6px; align-items: center; margin-top: 6px;'
     
-    const input = document.createElement('input')
-    input.placeholder = '值'
-    input.style.cssText = `
-      background: #1a202c;
-      border: 1px solid #4a5568;
-      color: #e2e8f0;
-      border-radius: 6px;
-      padding: 4px 6px;
-      font-size: 12px;
-      flex: 1;
-    `
-    if (v !== undefined) {
-      input.value = (v === null ? 'null' : String(v))
-    }
-    input.oninput = () => updateOutput()
-
-    const delBtn = document.createElement('button')
-    delBtn.textContent = '删除'
-    delBtn.style.cssText = `
-      background: transparent;
-      border: 1px solid #4a5568;
-      color: #cbd5e1;
-      border-radius: 6px;
-      padding: 4px 8px;
-      font-size: 11px;
-      cursor: pointer;
-    `
-    delBtn.onclick = () => {
-      row.remove()
-      updateOutput()
-    }
-
-    row.append(input, delBtn)
-    ;(row as any)._refs = { input }
-    return row
+    count(data)
+    stats.chars = JSON.stringify(data).length
+    return stats
   }, [])
 
-  // 创建数组对象项
-  const createArrayObjItem = useCallback((obj: any = {}) => {
-    const box = document.createElement('div')
-    box.className = 'arr-obj'
-    box.style.cssText = `
-      border: 1px dashed #4a5568;
-      border-radius: 10px;
-      padding: 10px;
-      margin: 8px 0;
-      background: #171923;
-    `
+  // 解析路径
+  const resolvePath = useCallback((path: string, data: JsonNode) => {
+    if (path === 'root') return { val: data, parent: null, key: null }
 
-    const fields = document.createElement('div')
-    fields.style.cssText = 'margin-left: 10px; display: block;'
+    const keys = path
+      .replace(/^root\.?/, '')
+      .replace(/\[(\d+)\]/g, '.$1')
+      .split('.')
 
-    const tools = document.createElement('div')
-    tools.style.cssText = 'display: flex; gap: 6px; margin-top: 6px;'
+    let current: any = data
 
-    const addBtn = document.createElement('button')
-    addBtn.textContent = '+ 字段'
-    addBtn.style.cssText = `
-      background: transparent;
-      border: 1px solid #4a5568;
-      color: #cbd5e1;
-      border-radius: 6px;
-      padding: 4px 8px;
-      font-size: 11px;
-      cursor: pointer;
-    `
-
-    const delBtn = document.createElement('button')
-    delBtn.textContent = '删除对象'
-    delBtn.style.cssText = addBtn.style.cssText
-
-    addBtn.onclick = () => {
-      fields.appendChild(createPair())
-      updateOutput()
-    }
-
-    delBtn.onclick = () => {
-      box.remove()
-      updateOutput()
-    }
-
-    tools.append(addBtn, delBtn)
-
-    box.append(fields, tools)
-    Object.entries(obj).forEach(([k, v]) => fields.appendChild(createPair(k, v)))
-    return box
-  }, [])
-
-  // 收集数据的高性能函数
-  const collectPair = useCallback((el: HTMLElement): any => {
-    const refs = (el as any)._refs
-    if (!refs) return null
-
-    const { keyInput, primInput, objBox, arrBox } = refs
-    const k = keyInput.value || ''
-    if (!k) return null
-
-    const objPairs = objBox.querySelectorAll('.amiya-pair')
-    const arrPrimItems = arrBox.querySelectorAll('.arr-prim')
-    const arrObjItems = arrBox.querySelectorAll('.arr-obj')
-
-    if (objPairs.length > 0) {
-      const obj: any = {}
-      objPairs.forEach((p: any) => {
-        const ent = collectPair(p)
-        if (ent) Object.assign(obj, ent)
-      })
-      return { [k]: obj }
-    } else if (arrPrimItems.length > 0 || arrObjItems.length > 0) {
-      const arr: any[] = []
-      
-      arrPrimItems.forEach((r: any) => {
-        const refs = r._refs
-        if (refs && refs.input) {
-          arr.push(tryParse(refs.input.value))
-        }
-      })
-      
-      arrObjItems.forEach((o: any) => {
-        const tmp: any = {}
-        o.querySelectorAll('.amiya-pair').forEach((p: any) => {
-          const ent = collectPair(p)
-          if (ent) Object.assign(tmp, ent)
-        })
-        arr.push(tmp)
-      })
-      
-      return { [k]: arr }
-    } else {
-      return { [k]: tryParse(primInput.value) }
-    }
-  }, [tryParse])
-
-  // 构建 JSON
-  const buildJSON = useCallback(() => {
-    if (!areasRef.current) return {}
-    
-    const result: any = {}
-    areasRef.current.querySelectorAll('.amiya-area').forEach(area => {
-      const rootPair = area.querySelector('.amiya-pair')
-      if (rootPair) {
-        const ent = collectPair(rootPair as HTMLElement)
-        if (ent) Object.assign(result, ent)
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (current == null) {
+        return { val: undefined, parent: null, key: keys[keys.length - 1] }
       }
+      current = current[keys[i]]
+    }
+
+    const finalKey = keys[keys.length - 1]
+    if (current == null) {
+      return { val: undefined, parent: null, key: finalKey }
+    }
+
+    return {
+      val: current[finalKey],
+      parent: current,
+      key: finalKey,
+    }
+  }, [])
+
+  // 设置值
+  const setValue = useCallback((path: string, value: any) => {
+    if (path === 'root') {
+      setJsonData(value)
+      return
+    }
+    
+    setJsonData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev))
+      const { parent, key } = resolvePath(path, newData)
+      if (parent && key !== null) {
+        parent[key] = value
+      }
+      return newData
     })
-    return result
-  }, [collectPair])
+  }, [resolvePath])
 
-  // 更新输出
-  const updateOutput = useCallback(() => {
-    if (!outputRef.current) return
-    
-    const data = buildJSON()
-    outputRef.current.value = JSON.stringify(data, null, 2)
-  }, [buildJSON])
-
-  // 导入对象
-  const importObject = useCallback((obj: any) => {
-    if (!areasRef.current) return
-    
-    areasRef.current.innerHTML = ''
-    Object.entries(obj as Record<string, any>).forEach(([k, v]) => createArea(k, v))
-    updateOutput()
-  }, [createArea, updateOutput])
-
-  // 事件处理函数
-  const handleAddArea = useCallback(() => {
-    createArea()
-  }, [createArea])
-
-  const handleClearAll = useCallback(() => {
-    if (!areasRef.current) return
-    
-    areasRef.current.innerHTML = ''
-    updateOutput()
-  }, [updateOutput])
-
-  const handleSaveUpdate = useCallback(() => {
-    if (!outputRef.current) return
-    
+  // 删除节点
+  const deleteNode = useCallback((path: string) => {
     try {
-      const jsonData = JSON.parse(outputRef.current.value)
+      setJsonData(prev => {
+        const newData = JSON.parse(JSON.stringify(prev))
+        const { parent, key } = resolvePath(path, newData)
+
+        if (parent != null && key !== null) {
+          if (Array.isArray(parent)) {
+            const index = Number(key)
+            if (!Number.isNaN(index)) parent.splice(index, 1)
+          } else if (Object.prototype.hasOwnProperty.call(parent, key as any)) {
+            delete parent[key as any]
+          }
+        }
+        return newData
+      })
+
+      // 清理折叠状态
+      setCollapsedNodes(prev => {
+        const newCollapsed = new Set(prev)
+        Array.from(newCollapsed).forEach(p => {
+          if (p.startsWith(path)) {
+            newCollapsed.delete(p)
+          }
+        })
+        return newCollapsed
+      })
+    } catch {
+      // 忽略删除期间的非预期错误，避免阻断交互
+    }
+  }, [resolvePath])
+
+  // 添加节点
+  const addNode = useCallback((path: string, type: NodeType) => {
+    const defaultValues = {
+      string: '',
+      number: 0,
+      boolean: true,
+      null: null,
+      object: {},
+      array: []
+    }
+    
+    setJsonData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev))
+      const { val: target } = resolvePath(path, newData)
       
-      // 更新现有的提示词
+      if (Array.isArray(target)) {
+        target.push(defaultValues[type])
+      } else if (typeof target === 'object' && target !== null) {
+        let key = 'new_key'
+        let i = 1
+        while (target[key]) {
+          key = `new_key_${i++}`
+        }
+        target[key] = defaultValues[type]
+      }
+      
+      return newData
+    })
+  }, [resolvePath])
+
+  // 重命名键
+  const renameKey = useCallback((parentPath: string, oldKey: string, newKey: string) => {
+    if (!newKey.trim() || oldKey === newKey) return
+    
+    setJsonData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev))
+      const { val: parent } = resolvePath(parentPath, newData)
+      
+      if (parent && typeof parent === 'object' && !Array.isArray(parent)) {
+        if (Object.prototype.hasOwnProperty.call(parent, newKey)) {
+          toaster.create({ title: '键名已存在' })
+          return prev
+        }
+        if (!Object.prototype.hasOwnProperty.call(parent, oldKey)) {
+          return prev
+        }
+        
+        const newParent: any = {}
+        Object.keys(parent).forEach(key => {
+          if (key === oldKey) {
+            newParent[newKey] = parent[oldKey]
+          } else {
+            newParent[key] = parent[key]
+          }
+        })
+        
+        if (parentPath === 'root') {
+          return newParent
+        } else {
+          const { parent: grandparent, key: parentKey } = resolvePath(parentPath, newData)
+          if (grandparent && parentKey !== null) {
+            grandparent[parentKey] = newParent
+          }
+        }
+      }
+      
+      return newData
+    })
+  }, [resolvePath])
+
+  // 切换折叠状态
+  const toggleCollapse = useCallback((path: string) => {
+    setCollapsedNodes(prev => {
+      const newCollapsed = new Set(prev)
+      if (newCollapsed.has(path)) {
+        newCollapsed.delete(path)
+      } else {
+        newCollapsed.add(path)
+      }
+      return newCollapsed
+    })
+  }, [])
+
+  // 全部展开
+  const expandAll = useCallback(() => {
+    setCollapsedNodes(new Set())
+  }, [])
+
+  // 全部折叠
+  const collapseAll = useCallback(() => {
+    const getAllPaths = (data: any, path = 'root'): string[] => {
+      const paths: string[] = []
+      
+      if (typeof data === 'object' && data !== null) {
+        if (Array.isArray(data)) {
+          data.forEach((item, index) => {
+            const itemPath = `${path}[${index}]`
+            if (typeof item === 'object' && item !== null) {
+              paths.push(itemPath)
+              paths.push(...getAllPaths(item, itemPath))
+            }
+          })
+        } else {
+          Object.entries(data).forEach(([key, value]) => {
+            const itemPath = `${path}.${key}`
+            if (typeof value === 'object' && value !== null) {
+              paths.push(itemPath)
+              paths.push(...getAllPaths(value, itemPath))
+            }
+          })
+        }
+      }
+      
+      return paths
+    }
+    
+    const allPaths = getAllPaths(jsonData)
+    setCollapsedNodes(new Set(allPaths))
+  }, [jsonData])
+
+  // 清空全部
+  const clearAll = useCallback(() => {
+    if (confirm('确定要清空所有数据吗？此操作不可撤销。')) {
+      setJsonData({})
+      setCollapsedNodes(new Set())
+      toaster.create({ title: '数据已清空' })
+    }
+  }, [])
+
+  // 导入JSON
+  const importJson = useCallback(() => {
+    if (!fileInputRef.current) return
+    
+    const file = fileInputRef.current.files?.[0]
+    if (!file) return
+    
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const result = e.target?.result
+        if (typeof result === 'string') {
+          const data = JSON.parse(result)
+          setJsonData(data)
+          setCollapsedNodes(new Set())
+          toaster.create({ title: '导入成功' })
+        }
+      } catch (error) {
+        toaster.create({ title: 'JSON 解析失败' })
+      }
+    }
+    reader.readAsText(file)
+    fileInputRef.current.value = ''
+  }, [])
+
+  // 解析输入值
+  const parseInput = useCallback((value: string, type: NodeType) => {
+    if (type === 'number') return Number(value) || 0
+    if (type === 'boolean') return value === 'true'
+    if (type === 'null') return null
+    return value
+  }, [])
+
+  // 渲染空状态
+  const renderEmptyState = () => (
+    <Box textAlign="center" py={10} color="gray.500">
+      <Text mb={6}>暂无数据，开始创建您的 JSON 结构</Text>
+      <HStack justify="center" gap={4}>
+        <Button
+          colorScheme="blue"
+          onClick={() => setJsonData({ "new_key": "value" })}
+        >
+          📦 创建对象 {}
+        </Button>
+        <Button
+          colorScheme="green"
+          onClick={() => setJsonData(["item"])}
+        >
+          📋 创建数组 []
+        </Button>
+      </HStack>
+    </Box>
+  )
+
+  // 渲染添加菜单
+  const renderAddMenu = (path: string) => (
+    <HStack gap={2} mt={2} ml={5}>
+      <Button
+        size="xs"
+        variant="outline"
+        onClick={() => addNode(path, 'object')}
+      >
+        📦 Object
+      </Button>
+      <Button
+        size="xs"
+        variant="outline"
+        onClick={() => addNode(path, 'array')}
+      >
+        📋 Array
+      </Button>
+      <Button
+        size="xs"
+        variant="outline"
+        onClick={() => addNode(path, 'string')}
+      >
+        🔤 String
+      </Button>
+    </HStack>
+  )
+
+  // 渲染值输入框
+  const renderValueInput = (value: any, path: string) => {
+    const type = getType(value)
+    
+    return (
+      <Input
+        size="sm"
+        value={String(value)}
+        color={
+          type === 'string' ? 'green.600' :
+          type === 'number' ? 'blue.600' :
+          'gray.600'
+        }
+        onChange={(e) => setValue(path, parseInput(e.target.value, type))}
+        bg="transparent"
+        border="1px solid transparent"
+        _hover={{ border: '1px solid', borderColor: 'gray.300', bg: 'white' }}
+        _focus={{ border: '1px solid', borderColor: 'blue.500', bg: 'white' }}
+      />
+    )
+  }
+
+  // 渲染对象节点
+  const renderObjectNode = (obj: any, path: string): JSX.Element => {
+    const entries = Object.entries(obj as Record<string, any>)
+    
+    return (
+      <Box ml={5} borderLeft="2px solid" borderColor="gray.200" pl={3}>
+        {entries.map(([key, value]) => {
+          const itemPath = `${path}.${key}`
+          const type = getType(value)
+          const isCollapsed = collapsedNodes.has(itemPath)
+          const isComplex = ['object', 'array'].includes(type)
+          
+          return (
+            <Box key={key} mb={2}>
+              <HStack gap={2} align="center">
+                {isComplex && (
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    p={0}
+                    minW="auto"
+                    h="auto"
+                    onClick={() => toggleCollapse(itemPath)}
+                  >
+                    {isCollapsed ? <FiChevronRight /> : <FiChevronDown />}
+                  </Button>
+                )}
+                
+                <Input
+                  size="sm"
+                  value={key}
+                  fontWeight="bold"
+                  color="purple.600"
+                  w="auto"
+                  minW="80px"
+                  onChange={(e) => renameKey(path, key, e.target.value)}
+                  bg="transparent"
+                  border="1px solid transparent"
+                  _hover={{ border: '1px solid', borderColor: 'gray.300', bg: 'white' }}
+                  _focus={{ border: '1px solid', borderColor: 'blue.500', bg: 'white' }}
+                />
+                
+                <Text>:</Text>
+                
+                {isComplex ? (
+                  <Badge colorScheme={type === 'object' ? 'blue' : 'green'}>
+                    {type === 'object' ? `{${Object.keys(value as object).length}}` : `[${(value as any[]).length}]`}
+                  </Badge>
+                ) : (
+                  renderValueInput(value, itemPath)
+                )}
+                
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  colorScheme="red"
+                  onClick={() => deleteNode(itemPath)}
+                >
+                  <FiX />
+                </Button>
+              </HStack>
+              
+              {isComplex && !isCollapsed && (
+                <Box mt={2}>
+                  {type === 'object' ? 
+                    renderObjectNode(value, itemPath) : 
+                    renderArrayNode(value as any[], itemPath)
+                  }
+                </Box>
+              )}
+            </Box>
+          )
+        })}
+        {renderAddMenu(path)}
+      </Box>
+    )
+  }
+
+  // 渲染数组节点
+  const renderArrayNode = (arr: any[], path: string): JSX.Element => {
+    return (
+      <Box ml={5} borderLeft="2px solid" borderColor="gray.200" pl={3}>
+        {arr.map((value, index) => {
+          const itemPath = `${path}[${index}]`
+          const type = getType(value)
+          const isCollapsed = collapsedNodes.has(itemPath)
+          const isComplex = ['object', 'array'].includes(type)
+          
+          return (
+            <Box key={index} mb={2}>
+              <HStack gap={2} align="center">
+                {isComplex && (
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    p={0}
+                    minW="auto"
+                    h="auto"
+                    onClick={() => toggleCollapse(itemPath)}
+                  >
+                    {isCollapsed ? <FiChevronRight /> : <FiChevronDown />}
+                  </Button>
+                )}
+                
+                <Text fontWeight="bold" color="purple.600" minW="20px">
+                  {index}:
+                </Text>
+                
+                {isComplex ? (
+                  <Badge colorScheme={type === 'object' ? 'blue' : 'green'}>
+                    {type === 'object' ? `{${Object.keys(value as object).length}}` : `[${(value as any[]).length}]`}
+                  </Badge>
+                ) : (
+                  renderValueInput(value, itemPath)
+                )}
+                
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  colorScheme="red"
+                  onClick={() => deleteNode(itemPath)}
+                >
+                  <FiX />
+                </Button>
+              </HStack>
+              
+              {isComplex && !isCollapsed && (
+                <Box mt={2}>
+                  {type === 'object' ? 
+                    renderObjectNode(value, itemPath) : 
+                    renderArrayNode(value as any[], itemPath)
+                  }
+                </Box>
+              )}
+            </Box>
+          )
+        })}
+        {renderAddMenu(path)}
+      </Box>
+    )
+  }
+
+  // 渲染主要内容
+  const renderContent = () => {
+    const type = getType(jsonData)
+    
+    if (type === 'object' && Object.keys(jsonData).length === 0) {
+      return renderEmptyState()
+    }
+    
+    if (type === 'array' && (jsonData as any[]).length === 0) {
+      return renderEmptyState()
+    }
+    
+    if (type === 'object') {
+      return renderObjectNode(jsonData, 'root')
+    }
+    
+    if (type === 'array') {
+      return renderArrayNode(jsonData as any[], 'root')
+    }
+    
+    return <Text color="red.500">根节点必须是对象或数组</Text>
+  }
+
+  // 保存更新功能
+  const handleSaveUpdate = useCallback(() => {
+    try {
       updateMutation.mutate({
         role_id: prompt.role_id,
         version: prompt.version + 1,
@@ -541,25 +603,44 @@ const GraphicEditRolePrompt = ({ prompt }: GraphicEditRolePromptProps) => {
         is_active: prompt.is_active
       })
     } catch (err) {
-      showToast('JSON 格式错误，请检查编辑器内容')
+      toaster.create({ title: 'JSON 格式错误，请检查编辑器内容' })
     }
-  }, [prompt, updateMutation, showToast])
+  }, [prompt, updateMutation, jsonData])
+
+  // 添加测试数据功能
+  const handleAddTestData = useCallback(() => {
+    const testData = {
+      "basic_info": {
+        "name": "测试角色",
+        "code_name": "角色代号",
+        "gender": "女",
+        "race": "千机族",
+        "height": "142cm",
+        "birthday": "12月23日",
+        "birthplace": "雷鸣龙族"
+      },
+      "battle_experience": ["三年", "五年"],
+      "skills": ["技能1", "技能2", "技能3"],
+      "personality": "活泼开朗"
+    }
+    setJsonData(testData)
+    setCollapsedNodes(new Set())
+    toaster.create({ title: '测试数据已加载' })
+  }, [])
 
   // 当弹窗打开时，加载现有的 JSON 数据
   useEffect(() => {
     if (isOpen) {
-      // 延迟执行，确保DOM已经渲染
-      setTimeout(() => {
-        if (prompt.user_prompt && typeof prompt.user_prompt === 'object') {
-          console.log('Loading user_prompt:', prompt.user_prompt)
-          importObject(prompt.user_prompt)
-        } else {
-          console.log('No user_prompt data, initializing empty editor')
-          updateOutput()
-        }
-      }, 100)
+      if (prompt.user_prompt && typeof prompt.user_prompt === 'object') {
+        setJsonData(prompt.user_prompt)
+      } else {
+        setJsonData({})
+      }
+      setCollapsedNodes(new Set())
     }
-  }, [isOpen, prompt.user_prompt, importObject, updateOutput])
+  }, [isOpen, prompt.user_prompt])
+
+  const stats = getStats(jsonData)
 
   return (
     <>
@@ -573,97 +654,143 @@ const GraphicEditRolePrompt = ({ prompt }: GraphicEditRolePromptProps) => {
           <DialogHeader>
             <DialogTitle>图形编辑提示词 - 版本 {prompt.version}</DialogTitle>
           </DialogHeader>
-          
-          <DialogBody>
-            <Box>
-              {/* 头部工具栏 */}
-              <Box
-                bg="rgba(26, 32, 44, 0.8)"
-                backdropFilter="blur(8px)"
-                borderBottom="1px solid"
-                borderColor="gray.600"
-                p={4}
-                borderRadius="md"
-                mb={4}
-              >
-                <Flex gap={2} wrap="wrap">
-                  <Button onClick={handleAddArea} size="sm">
-                    + 添加区域
-                  </Button>
-                  <Button onClick={handleClearAll} variant="outline" size="sm" colorScheme="red">
-                    清空全部
-                  </Button>
-                  <Button 
-                    onClick={handleSaveUpdate} 
-                    size="sm" 
-                    colorScheme="green"
-                    loading={updateMutation.isPending}
-                  >
-                    <FiSave /> 保存更新
-                  </Button>
-                </Flex>
-              </Box>
 
-              {/* 主要内容 */}
-              <Grid templateColumns={{ base: "1fr", lg: "1.2fr 0.8fr" }} gap={6}>
+          <DialogBody>
+            <VStack gap={4} align="stretch">
+              {/* 工具栏 */}
+              <Flex gap={4} wrap="wrap" align="center">
+                <Button
+                  colorScheme="red"
+                  onClick={clearAll}
+                >
+                  🗑️ 清空全部
+                </Button>
+                
+                <Button
+                  colorScheme="green"
+                  onClick={handleSaveUpdate}
+                  loading={updateMutation.isPending}
+                >
+                  <FiSave style={{ marginRight: '6px' }} />
+                  💾 保存更新
+                </Button>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  style={{ display: 'none' }}
+                  onChange={importJson}
+                />
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  📁 导入文件
+                </Button>
+                
+                <Button
+                  onClick={expandAll}
+                >
+                  👁️ 全部展开
+                </Button>
+                
+                <Button
+                  onClick={collapseAll}
+                >
+                  🙈 全部折叠
+                </Button>
+                
+                <Button
+                  onClick={handleAddTestData}
+                  colorScheme="cyan"
+                >
+                  加载测试数据
+                </Button>
+
+                <Button
+                  onClick={() => {
+                    console.log('当前jsonData:', jsonData)
+                    console.log('当前collapsedNodes:', Array.from(collapsedNodes))
+                    alert('调试信息已输出到控制台')
+                  }}
+                  colorScheme="gray"
+                >
+                  调试信息
+                </Button>
+                
+                <Text fontSize="sm" color="gray.600" ml="auto">
+                  节点: {stats.nodes} | 对象: {stats.objects} | 数组: {stats.arrays} | 字符: {stats.chars}
+                </Text>
+              </Flex>
+              
+              {/* 主要内容区 */}
+              <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={6} h="70vh">
                 {/* 编辑区域 */}
                 <Box
-                  bg="gray.800"
+                  bg="white"
                   border="1px solid"
-                  borderColor="gray.600"
+                  borderColor="gray.200"
                   borderRadius="lg"
-                  p={4}
-                  height="60vh"
-                  display="flex"
-                  flexDirection="column"
+                  overflow="hidden"
                 >
                   <Box
-                    flex="1"
+                    p={3}
+                    bg="gray.50"
+                    borderBottom="1px solid"
+                    borderColor="gray.200"
+                    fontWeight="bold"
+                  >
+                    可视化编辑区
+                  </Box>
+                  <Box
+                    p={4}
+                    h="calc(100% - 60px)"
                     overflowY="auto"
                     style={{
-                      scrollbarWidth: 'thin',
-                      scrollbarColor: '#4a5568 #2d3748'
+                      scrollbarWidth: 'thin'
                     }}
                   >
-                    <div ref={areasRef} />
+                    {renderContent()}
                   </Box>
                 </Box>
-
+                
                 {/* 预览区域 */}
                 <Box
-                  bg="gray.800"
+                  bg="white"
                   border="1px solid"
-                  borderColor="gray.600"
+                  borderColor="gray.200"
                   borderRadius="lg"
-                  p={4}
-                  height="60vh"
-                  display="flex"
-                  flexDirection="column"
+                  overflow="hidden"
                 >
-                  <Text fontSize="xs" color="gray.400" mb={2} flexShrink={0}>
-                    JSON 预览
-                  </Text>
-                  <textarea
-                    ref={outputRef}
+                  <Box
+                    p={3}
+                    bg="gray.50"
+                    borderBottom="1px solid"
+                    borderColor="gray.200"
+                    fontWeight="bold"
+                  >
+                    JSON 实时预览
+                  </Box>
+                  <Box
+                    p={4}
+                    h="calc(100% - 60px)"
+                    overflowY="auto"
                     style={{
-                      width: '100%',
-                      flex: '1',
-                      background: '#1a202c',
-                      border: '1px solid #4a5568',
-                      borderRadius: '8px',
-                      color: '#e2e8f0',
-                      padding: '12px',
-                      fontFamily: 'ui-monospace, Consolas, Menlo, monospace',
-                      fontSize: '12px',
-                      resize: 'none',
-                      scrollbarWidth: 'thin',
-                      scrollbarColor: '#4a5568 #2d3748'
+                      scrollbarWidth: 'thin'
                     }}
-                    readOnly
-                  />
+                  >
+                    <Text
+                      as="pre"
+                      fontSize="sm"
+                      fontFamily="Consolas, Monaco, 'Courier New', monospace"
+                      whiteSpace="pre-wrap"
+                    >
+                      {JSON.stringify(jsonData, null, 2)}
+                    </Text>
+                  </Box>
                 </Box>
               </Grid>
-            </Box>
+            </VStack>
           </DialogBody>
 
           <DialogFooter>
