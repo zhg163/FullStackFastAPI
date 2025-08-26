@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { 
   Box, 
   Container, 
@@ -18,6 +19,12 @@ import {
   FiX
 } from 'react-icons/fi'
 import { toaster } from '@/components/ui/toaster'
+import {
+  RolePromptsService,
+  type RolePromptUpdate,
+} from "@/client"
+import type { ApiError } from "@/client/core/ApiError"
+import useCustomToast from "@/hooks/useCustomToast"
 
 export const Route = createFileRoute("/_layout/amiya-editor")({
   component: AmiyaEditor,
@@ -39,7 +46,57 @@ type NodeType = 'string' | 'number' | 'boolean' | 'null' | 'object' | 'array'
 export default function AmiyaEditor() {
   const [jsonData, setJsonData] = useState<JsonNode>({})
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set())
+  const [editingPrompt, setEditingPrompt] = useState<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const navigate = useNavigate()
+  const showToast = useCustomToast()
+  const queryClient = useQueryClient()
+
+  // 从 sessionStorage 读取编辑中的提示词数据
+  useEffect(() => {
+    const stored = sessionStorage.getItem('editingPrompt')
+    if (stored) {
+      try {
+        const promptData = JSON.parse(stored)
+        setEditingPrompt(promptData)
+        
+        // 设置初始 JSON 数据
+        if (promptData.user_prompt) {
+          if (typeof promptData.user_prompt === 'string') {
+            const parsedJson = JSON.parse(promptData.user_prompt)
+            setJsonData(parsedJson)
+          } else {
+            setJsonData(promptData.user_prompt)
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to parse editing prompt:', error)
+      }
+    }
+  }, [])
+
+  // 更新提示词的 mutation
+  const updateMutation = useMutation({
+    mutationFn: (data: RolePromptUpdate) => {
+      if (!editingPrompt) {
+        throw new Error('No editing prompt data available')
+      }
+      return RolePromptsService.updateRolePrompt({
+        rolePromptId: editingPrompt.id,
+        requestBody: data,
+      })
+    },
+    onSuccess: () => {
+      showToast.showSuccessToast("角色提示词已更新")
+      queryClient.invalidateQueries({ queryKey: ["role-prompts"] })
+      // 清除 sessionStorage 并返回
+      sessionStorage.removeItem('editingPrompt')
+      navigate({ to: '/role-prompts' as any })
+    },
+    onError: (err: ApiError) => {
+      showToast.showErrorToast(err.message || '更新失败')
+    },
+  })
 
   // 获取数据类型
   const getType = useCallback((value: any): NodeType => {
@@ -287,30 +344,46 @@ export default function AmiyaEditor() {
     }
   }, [])
 
-  // 导出JSON
+  // 保存到后端或导出JSON
   const exportJson = useCallback(() => {
-    try {
-      const jsonString = JSON.stringify(jsonData, null, 2)
-      const blob = new Blob([jsonString], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
+    if (editingPrompt) {
+      // 如果是编辑模式，保存到后端
+      const submitData = {
+        role_id: editingPrompt.role_id ? Number(editingPrompt.role_id) : null,
+        version: editingPrompt.version ? Number(editingPrompt.version) : null,
+        is_active: "Y",
+        user_prompt: jsonData, // 直接传递对象
+      }
       
-      const now = new Date()
-      const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-')
-      const filename = `json-data-${timestamp}.json`
+      console.log('提交数据:', submitData)
+      console.log('editingPrompt ID:', editingPrompt.id)
       
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      
-      toaster.create({ title: 'JSON 文件已保存！' })
-    } catch (error) {
-      toaster.create({ title: '保存失败' })
+      updateMutation.mutate(submitData)
+    } else {
+      // 如果是普通模式，导出文件
+      try {
+        const jsonString = JSON.stringify(jsonData, null, 2)
+        const blob = new Blob([jsonString], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        
+        const now = new Date()
+        const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-')
+        const filename = `json-data-${timestamp}.json`
+        
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        
+        toaster.create({ title: 'JSON 文件已保存！' })
+      } catch (error) {
+        toaster.create({ title: '保存失败' })
+      }
     }
-  }, [jsonData])
+  }, [jsonData, editingPrompt, updateMutation])
 
   // 导入JSON
   const importJson = useCallback(() => {
@@ -587,11 +660,23 @@ export default function AmiyaEditor() {
       <VStack gap={6} align="stretch">
         {/* 标题 */}
         <Text fontSize="2xl" fontWeight="bold" textAlign="center" color="gray.700">
-          在线可视化 JSON 编辑器
+          {editingPrompt ? `编辑角色提示词 - Role ${editingPrompt.id}` : '在线可视化 JSON 编辑器'}
         </Text>
         
         {/* 工具栏 */}
         <Flex gap={4} wrap="wrap" align="center">
+          {editingPrompt && (
+            <Button
+              colorScheme="gray"
+              onClick={() => {
+                sessionStorage.removeItem('editingPrompt')
+                navigate({ to: '/role-prompts' as any })
+              }}
+            >
+              ← 返回提示词列表
+            </Button>
+          )}
+          
           <Button
             colorScheme="red"
             onClick={clearAll}
@@ -602,8 +687,10 @@ export default function AmiyaEditor() {
           <Button
             colorScheme="green"
             onClick={exportJson}
+            loading={updateMutation.isPending}
+            disabled={editingPrompt && !editingPrompt.id}
           >
-            💾 保存更新
+            {editingPrompt ? '💾 保存到后端' : '💾 导出文件'}
           </Button>
           
           <input

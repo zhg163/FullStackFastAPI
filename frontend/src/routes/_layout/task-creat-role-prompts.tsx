@@ -11,11 +11,11 @@ import {
   Table,
   Text,
 } from "@chakra-ui/react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import type React from "react"
 import { useState } from "react"
-import { FiRefreshCcw, FiSearch } from "react-icons/fi"
+import { FiRefreshCcw, FiSearch, FiPlay, FiSquare, FiTrash2 } from "react-icons/fi"
 import { z } from "zod"
 
 import {
@@ -26,13 +26,15 @@ import {
 import { TaskCreatRolePromptActionsMenu } from "@/components/Common/TaskCreatRolePromptActionsMenu"
 import PendingTaskCreatRolePrompts from "@/components/Pending/PendingTaskCreatRolePrompts"
 import AddTaskCreatRolePrompt from "@/components/TaskCreatRolePrompts/AddTaskCreatRolePrompt"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Field } from "@/components/ui/field"
+import { toaster } from "@/components/ui/toaster"
 import {
   PaginationItems,
   PaginationNextTrigger,
   PaginationPrevTrigger,
   PaginationRoot,
-} from "@/components/ui/pagination.tsx"
+} from "@/components/ui/pagination"
 
 const taskCreatRolePromptsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -115,18 +117,14 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
   }
 
   return (
-    <Box p={6} bg="gray.50" borderRadius="lg" mb={6} shadow="sm">
-      <Heading size="md" mb={4} color="gray.700">
-        搜索条件
-      </Heading>
-
+    <Box bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" p={4} mb={4}>
       <Grid
         templateColumns={{
           base: "1fr",
-          md: "repeat(3, 1fr)",
+          md: "1fr 1fr 1fr auto",
         }}
         gap={4}
-        mb={4}
+        alignItems="end"
       >
         <GridItem>
           <Field label="任务名称">
@@ -134,12 +132,13 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
               placeholder="输入任务名称"
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
+              size="sm"
               bg="white"
               borderColor="gray.300"
               _hover={{ borderColor: "gray.400" }}
               _focus={{
-                borderColor: "blue.500",
-                boxShadow: "0 0 0 1px blue.500",
+                borderColor: "teal.500",
+                boxShadow: "0 0 0 1px teal.500",
               }}
             />
           </Field>
@@ -155,12 +154,13 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                 }
                 style={{
                   width: "100%",
-                  padding: "8px 12px",
+                  padding: "6px 12px",
                   borderRadius: "6px",
-                  border: "1px solid #E2E8F0",
+                  border: "1px solid #D1D5DB",
                   fontSize: "14px",
                   backgroundColor: "white",
                   cursor: "pointer",
+                  height: "32px",
                 }}
               >
                 <option value="">全部状态</option>
@@ -183,12 +183,13 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                 }
                 style={{
                   width: "100%",
-                  padding: "8px 12px",
+                  padding: "6px 12px",
                   borderRadius: "6px",
-                  border: "1px solid #E2E8F0",
+                  border: "1px solid #D1D5DB",
                   fontSize: "14px",
                   backgroundColor: "white",
                   cursor: "pointer",
+                  height: "32px",
                 }}
               >
                 <option value="">选择角色</option>
@@ -201,23 +202,29 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
             </Box>
           </Field>
         </GridItem>
-      </Grid>
 
-      <Flex gap={3} justify={{ base: "center", md: "flex-start" }}>
-        <Button
-          colorScheme="blue"
-          onClick={handleSearch}
-          size="md"
-          minW="100px"
-        >
-          <FiSearch style={{ marginRight: "6px" }} />
-          搜索
-        </Button>
-        <Button variant="outline" onClick={handleReset} size="md" minW="100px">
-          <FiRefreshCcw style={{ marginRight: "6px" }} />
-          重置
-        </Button>
-      </Flex>
+        <GridItem>
+          <Flex gap={2}>
+            <Button
+              colorScheme="teal"
+              onClick={handleSearch}
+              size="sm"
+              minW="60px"
+            >
+              <FiSearch style={{ marginRight: "4px" }} />
+              搜索
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleReset}
+              size="sm"
+              minW="60px"
+            >
+              重置
+            </Button>
+          </Flex>
+        </GridItem>
+      </Grid>
     </Box>
   )
 }
@@ -227,6 +234,99 @@ function TaskCreatRolePromptsTable() {
   const navigate = useNavigate({ from: Route.fullPath })
   const searchParams = Route.useSearch()
   const { page, task_name, task_state, role_id } = searchParams
+
+  // 批量操作状态
+  const [selectedTasks, setSelectedTasks] = useState<number[]>([])
+  const [selectAll, setSelectAll] = useState(false)
+
+  // 批量启动任务 (设置状态为 R - 运行中)
+  const batchStartMutation = useMutation({
+    mutationFn: async (taskIds: number[]) => {
+      const promises = taskIds.map(taskId => 
+        TaskCreatRolePromptsService.updateTaskCreatRolePrompt({
+          taskPromptId: taskId,
+          requestBody: { task_state: "R" }
+        })
+      )
+      return Promise.all(promises)
+    },
+    onSuccess: () => {
+      toaster.create({
+        title: "批量启动成功",
+        description: `已启动 ${selectedTasks.length} 个任务`,
+        status: "success"
+      })
+      setSelectedTasks([])
+      setSelectAll(false)
+      queryClient.invalidateQueries({ queryKey: ["task-creat-role-prompts"] })
+    },
+    onError: (error) => {
+      toaster.create({
+        title: "批量启动失败",
+        description: error.message || "操作失败，请重试",
+        status: "error"
+      })
+    }
+  })
+
+  // 批量停止任务 (设置状态为 P - 待启动)
+  const batchStopMutation = useMutation({
+    mutationFn: async (taskIds: number[]) => {
+      const promises = taskIds.map(taskId => 
+        TaskCreatRolePromptsService.updateTaskCreatRolePrompt({
+          taskPromptId: taskId,
+          requestBody: { task_state: "P" }
+        })
+      )
+      return Promise.all(promises)
+    },
+    onSuccess: () => {
+      toaster.create({
+        title: "批量停止成功",
+        description: `已停止 ${selectedTasks.length} 个任务`,
+        status: "success"
+      })
+      setSelectedTasks([])
+      setSelectAll(false)
+      queryClient.invalidateQueries({ queryKey: ["task-creat-role-prompts"] })
+    },
+    onError: (error) => {
+      toaster.create({
+        title: "批量停止失败",
+        description: error.message || "操作失败，请重试",
+        status: "error"
+      })
+    }
+  })
+
+  // 批量删除任务
+  const batchDeleteMutation = useMutation({
+    mutationFn: async (taskIds: number[]) => {
+      const promises = taskIds.map(taskId => 
+        TaskCreatRolePromptsService.deleteTaskCreatRolePrompt({
+          taskPromptId: taskId
+        })
+      )
+      return Promise.all(promises)
+    },
+    onSuccess: () => {
+      toaster.create({
+        title: "批量删除成功",
+        description: `已删除 ${selectedTasks.length} 个任务`,
+        status: "success"
+      })
+      setSelectedTasks([])
+      setSelectAll(false)
+      queryClient.invalidateQueries({ queryKey: ["task-creat-role-prompts"] })
+    },
+    onError: (error) => {
+      toaster.create({
+        title: "批量删除失败",
+        description: error.message || "操作失败，请重试",
+        status: "error"
+      })
+    }
+  })
 
   const { data, isLoading, isPlaceholderData } = useQuery({
     ...getTaskCreatRolePromptsQueryOptions({
@@ -301,24 +401,135 @@ function TaskCreatRolePromptsTable() {
     queryClient.invalidateQueries({ queryKey: ["task-creat-role-prompts"] })
   }
 
+  // 批量操作处理函数
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked)
+    if (checked) {
+      const allTaskIds = taskPrompts.map(task => task.id)
+      setSelectedTasks(allTaskIds)
+    } else {
+      setSelectedTasks([])
+    }
+  }
+
+  const handleSelectTask = (taskId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedTasks(prev => [...prev, taskId])
+    } else {
+      setSelectedTasks(prev => prev.filter(id => id !== taskId))
+      setSelectAll(false)
+    }
+  }
+
+  const handleBatchStart = () => {
+    if (selectedTasks.length === 0) {
+      toaster.create({
+        title: "请选择任务",
+        description: "请先选择要启动的任务",
+        status: "warning"
+      })
+      return
+    }
+    batchStartMutation.mutate(selectedTasks)
+  }
+
+  const handleBatchStop = () => {
+    if (selectedTasks.length === 0) {
+      toaster.create({
+        title: "请选择任务",
+        description: "请先选择要停止的任务",
+        status: "warning"
+      })
+      return
+    }
+    batchStopMutation.mutate(selectedTasks)
+  }
+
+  const handleBatchDelete = () => {
+    if (selectedTasks.length === 0) {
+      toaster.create({
+        title: "请选择任务",
+        description: "请先选择要删除的任务",
+        status: "warning"
+      })
+      return
+    }
+    
+    // 添加确认对话框
+    if (window.confirm(`确定要删除选中的 ${selectedTasks.length} 个任务吗？此操作不可撤销。`)) {
+      batchDeleteMutation.mutate(selectedTasks)
+    }
+  }
+
   return (
     <>
+      <SearchForm onSearch={handleSearch} onReset={handleReset} />
+
       <Flex justifyContent="space-between" alignItems="center" mb={4}>
-        <SearchForm onSearch={handleSearch} onReset={handleReset} />
-        <Button
-          colorScheme="teal"
-          onClick={handleRefresh}
-          size="md"
-          minW="100px"
-        >
-          <FiRefreshCcw style={{ marginRight: "6px" }} />
-          刷新数据
-        </Button>
+        {/* 批量操作按钮组 */}
+        <Flex gap={2}>
+          {selectedTasks.length > 0 && (
+            <>
+              <Button
+                colorScheme="green"
+                size="sm"
+                onClick={handleBatchStart}
+                disabled={selectedTasks.length === 0}
+                loading={batchStartMutation.isPending}
+              >
+                <FiPlay style={{ marginRight: "4px" }} />
+                批量启动 ({selectedTasks.length})
+              </Button>
+              <Button
+                colorScheme="orange"
+                size="sm"
+                onClick={handleBatchStop}
+                disabled={selectedTasks.length === 0}
+                loading={batchStopMutation.isPending}
+              >
+                <FiSquare style={{ marginRight: "4px" }} />
+                批量停止 ({selectedTasks.length})
+              </Button>
+              <Button
+                colorScheme="red"
+                size="sm"
+                onClick={handleBatchDelete}
+                disabled={selectedTasks.length === 0}
+                loading={batchDeleteMutation.isPending}
+              >
+                <FiTrash2 style={{ marginRight: "4px" }} />
+                批量删除 ({selectedTasks.length})
+              </Button>
+            </>
+          )}
+        </Flex>
+
+        {/* 右侧按钮组 */}
+        <Flex gap={3}>
+          <AddTaskCreatRolePrompt />
+          <Button
+            colorScheme="teal"
+            onClick={handleRefresh}
+            size="sm"
+            minW="80px"
+            height="32px"
+          >
+            <FiRefreshCcw style={{ marginRight: "4px" }} />
+            刷新数据
+          </Button>
+        </Flex>
       </Flex>
 
       <Table.Root size={{ base: "sm", md: "md" }} variant="outline">
         <Table.Header>
           <Table.Row bg="gray.50">
+            <Table.ColumnHeader w="12" fontWeight="bold">
+              <Checkbox
+                size="sm"
+                checked={selectAll}
+                onCheckedChange={({ checked }) => handleSelectAll(!!checked)}
+              />
+            </Table.ColumnHeader>
             <Table.ColumnHeader w="sm" fontWeight="bold">
               ID
             </Table.ColumnHeader>
@@ -348,12 +559,21 @@ function TaskCreatRolePromptsTable() {
         <Table.Body>
           {taskPrompts?.map((task) => {
             const stateDisplay = getTaskStateDisplay(task.task_state)
+            const isSelected = selectedTasks.includes(task.id)
             return (
               <Table.Row
                 key={task.id}
                 opacity={isPlaceholderData ? 0.5 : 1}
                 _hover={{ bg: "gray.50" }}
+                bg={isSelected ? "blue.50" : "transparent"}
               >
+                <Table.Cell>
+                  <Checkbox
+                    size="sm"
+                    checked={isSelected}
+                    onCheckedChange={({ checked }) => handleSelectTask(task.id, !!checked)}
+                  />
+                </Table.Cell>
                 <Table.Cell>
                   <Badge colorScheme="teal">{task.id}</Badge>
                 </Table.Cell>
@@ -450,11 +670,7 @@ function TaskCreatRolePromptsTable() {
 function TaskCreatRolePrompts() {
   return (
     <Container maxW="full" p={6}>
-      <Heading size="lg" pt={12} mb={6} color="gray.800">
-        任务管理
-      </Heading>
-
-      <AddTaskCreatRolePrompt />
+      <Box pt={12} mb={6} />
       <TaskCreatRolePromptsTable />
     </Container>
   )

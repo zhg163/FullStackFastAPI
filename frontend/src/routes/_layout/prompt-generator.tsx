@@ -789,39 +789,7 @@ function PromptGenerator() {
               </p>
             </div>
 
-            <div>
-              <label style={{ 
-                display: "block", 
-                fontSize: "16px", 
-                fontWeight: "600", 
-                color: "#374151", 
-                marginBottom: "8px" 
-              }}>
-                生成策略
-              </label>
-              <select
-                {...register("strategy")}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  border: "1px solid #D1D5DB",
-                  borderRadius: "8px",
-                  fontSize: "16px",
-                  backgroundColor: "white",
-                  cursor: "pointer",
-                  outline: "none"
-                }}
-              >
-                <option value="ai">🤖 智能生成 (AI自动生成)</option>
-                <option value="template">📋 模板填充 (基于现有模板)</option>
-                <option value="hybrid">🔗 混合模式 (AI+模板)</option>
-              </select>
-              <p style={{ color: "#6B7280", fontSize: "14px", marginTop: "4px" }}>
-                {watch("strategy") === "ai" ? "AI根据角色信息自动创作，创意性强但可能不够稳定" :
-                 watch("strategy") === "template" ? "基于预定义模板进行填充，结果稳定但创意性较低" :
-                 "结合AI创作和模板结构，平衡创意性和稳定性"}
-              </p>
-            </div>
+
           </div>
         )
 

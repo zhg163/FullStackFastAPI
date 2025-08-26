@@ -17,6 +17,7 @@ import { Route as RecoverPasswordImport } from './routes/recover-password'
 import { Route as LoginImport } from './routes/login'
 import { Route as LayoutImport } from './routes/_layout'
 import { Route as LayoutIndexImport } from './routes/_layout/index'
+import { Route as LayoutVisualJsonEditorImport } from './routes/_layout/visual-json-editor'
 import { Route as LayoutTaskCreatRolePromptsImport } from './routes/_layout/task-creat-role-prompts'
 import { Route as LayoutSettingsImport } from './routes/_layout/settings'
 import { Route as LayoutRolesImport } from './routes/_layout/roles'
@@ -58,6 +59,11 @@ const LayoutRoute = LayoutImport.update({
 
 const LayoutIndexRoute = LayoutIndexImport.update({
   path: '/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutVisualJsonEditorRoute = LayoutVisualJsonEditorImport.update({
+  path: '/visual-json-editor',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -186,6 +192,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutTaskCreatRolePromptsImport
       parentRoute: typeof LayoutImport
     }
+    '/_layout/visual-json-editor': {
+      preLoaderRoute: typeof LayoutVisualJsonEditorImport
+      parentRoute: typeof LayoutImport
+    }
     '/_layout/': {
       preLoaderRoute: typeof LayoutIndexImport
       parentRoute: typeof LayoutImport
@@ -208,6 +218,7 @@ export const routeTree = rootRoute.addChildren([
     LayoutRolesRoute,
     LayoutSettingsRoute,
     LayoutTaskCreatRolePromptsRoute,
+    LayoutVisualJsonEditorRoute,
     LayoutIndexRoute,
   ]),
   LoginRoute,

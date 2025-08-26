@@ -120,8 +120,8 @@ const AddTaskCreatRolePrompt = () => {
       placement="center"
     >
       <DialogTrigger asChild>
-        <Button variant="solid" colorScheme="teal" size="md" mb={4}>
-          <FaPlus fontSize="16px" />
+        <Button variant="solid" colorScheme="teal" size="sm" height="32px">
+          <FaPlus fontSize="14px" />
           添加任务
         </Button>
       </DialogTrigger>
