@@ -1,4 +1,6 @@
-# 生产环境Docker Compose配置
+# 47.96.8.83 服务器部署配置
+# 使用方法: docker-compose -f docker-compose.server.yml up -d
+
 version: "3.8"
 
 services:
@@ -41,13 +43,10 @@ services:
 
   # 后端预启动服务 - 负责数据库迁移和初始化
   prestart:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: registry.cn-hangzhou.aliyuncs.com/${DOCKER_NAMESPACE}/${PROJECT_NAME_DOCKER}-backend:${TAG:-latest}
     depends_on:
       db:
         condition: service_healthy
-    command: bash scripts/prestart.sh
     env_file:
       - .env.production
     environment:
@@ -62,13 +61,11 @@ services:
       - PROJECT_NAME=${PROJECT_NAME}
     networks:
       - backend-network
-    restart: "no"
+    command: python /app/app/backend_pre_start.py && alembic upgrade head && python /app/app/initial_data.py
 
   # 后端API服务
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: registry.cn-hangzhou.aliyuncs.com/${DOCKER_NAMESPACE}/${PROJECT_NAME_DOCKER}-backend:${TAG:-latest}
     restart: always
     depends_on:
       db:
@@ -82,7 +79,7 @@ services:
       - FRONTEND_HOST=http://47.96.8.83:3001
       - ENVIRONMENT=production
       - PROJECT_NAME=${PROJECT_NAME}
-      - BACKEND_CORS_ORIGINS=["http://localhost","http://localhost:3000","http://localhost:3001","http://localhost:5173","http://localhost:8000","http://192.168.2.201","http://192.168.2.201:3000","http://192.168.2.201:3001","http://192.168.2.201:5173","http://192.168.2.201:8000","http://47.96.8.83","http://47.96.8.83:3000","http://47.96.8.83:3001","http://47.96.8.83:5173","http://47.96.8.83:8000"]
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
       - SECRET_KEY=${SECRET_KEY}
       - FIRST_SUPERUSER=${FIRST_SUPERUSER}
       - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
@@ -91,39 +88,15 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      # 邮件配置
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-      # 监控配置
-      - SENTRY_DSN=${SENTRY_DSN}
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:8000/api/v1/utils/health-check/",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     networks:
-      - backend-network
       - frontend-network
+      - backend-network
     ports:
       - "8000:8000"
 
-  # 前端服务
+  # 前端应用服务
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=${VITE_API_URL:-http://localhost}
-        - NODE_ENV=production
+    image: registry.cn-hangzhou.aliyuncs.com/${DOCKER_NAMESPACE}/${PROJECT_NAME_DOCKER}-frontend:${TAG:-latest}
     restart: always
     depends_on:
       - backend
@@ -132,28 +105,25 @@ services:
     ports:
       - "3000:80"
 
-  # Nginx反向代理 (可选，如果不使用外部负载均衡器)
+  # Nginx 反向代理
   nginx:
     image: nginx:alpine
     restart: always
     depends_on:
-      - frontend
       - backend
+      - frontend
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "80:80"
-      - "3001:8080"
     networks:
       - frontend-network
       - backend-network
+    ports:
+      - "80:80"
+      - "3001:8080"
 
 volumes:
   app-db-data:
-    driver: local
 
 networks:
-  backend-network:
-    driver: bridge
   frontend-network:
-    driver: bridge
+  backend-network:
