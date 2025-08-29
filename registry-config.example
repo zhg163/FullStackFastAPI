@@ -1,0 +1,62 @@
+# 镜像仓库发布配置示例
+# 复制此文件为 .env.registry.local 并根据实际情况修改
+
+# ===========================================
+# 镜像仓库配置
+# ===========================================
+
+# 1. Docker Hub 配置
+# DOCKER_REGISTRY=docker.io
+# DOCKER_NAMESPACE=your-dockerhub-username
+
+# 2. 阿里云容器镜像服务配置
+# DOCKER_REGISTRY=registry.cn-hangzhou.aliyuncs.com
+# DOCKER_NAMESPACE=your-namespace
+
+# 3. 腾讯云容器镜像服务配置
+# DOCKER_REGISTRY=ccr.ccs.tencentyun.com
+# DOCKER_NAMESPACE=your-namespace
+
+# 4. 私有镜像仓库配置
+# DOCKER_REGISTRY=your-private-registry.com:5000
+# DOCKER_NAMESPACE=your-namespace
+
+# 默认配置 (请修改为实际值)
+DOCKER_REGISTRY=docker.io
+DOCKER_NAMESPACE=your-username
+PROJECT_NAME=fullstack-fastapi
+TAG=latest
+
+# ===========================================
+# 应用配置 (用于构建时)
+# ===========================================
+
+# 前端API地址 (构建时写入)
+VITE_API_URL=http://localhost
+
+# ===========================================
+# 部署环境配置 (生产环境使用)
+# ===========================================
+
+# 域名配置
+DOMAIN=localhost
+
+# 数据库配置
+POSTGRES_SERVER=db
+POSTGRES_PORT=5432
+POSTGRES_DB=app
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=changethis123
+
+# 应用配置
+PROJECT_NAME=FastAPI
+SECRET_KEY=your-secret-key-here
+FIRST_SUPERUSER=admin@example.com
+FIRST_SUPERUSER_PASSWORD=1q2w3e4r
+
+# CORS配置
+BACKEND_CORS_ORIGINS=["http://localhost","http://localhost:3000","http://localhost:3001","http://localhost:5173","http://localhost:8000"]
+FRONTEND_HOST=http://localhost:3001
+
+# 环境标识
+ENVIRONMENT=production

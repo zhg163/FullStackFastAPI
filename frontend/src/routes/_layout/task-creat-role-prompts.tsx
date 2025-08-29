@@ -239,15 +239,28 @@ function TaskCreatRolePromptsTable() {
   const [selectedTasks, setSelectedTasks] = useState<number[]>([])
   const [selectAll, setSelectAll] = useState(false)
 
-  // 批量启动任务 (设置状态为 R - 运行中)
+  // 启动单个任务的API调用
+  const startSingleTask = async (taskId: number) => {
+    const response = await fetch(`/api/v1/task-creat-role-prompts/${taskId}/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}` || ''
+      }
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.detail || '启动任务失败')
+    }
+    
+    return response.json()
+  }
+
+  // 批量启动任务 (调用AI API生成内容)
   const batchStartMutation = useMutation({
     mutationFn: async (taskIds: number[]) => {
-      const promises = taskIds.map(taskId => 
-        TaskCreatRolePromptsService.updateTaskCreatRolePrompt({
-          taskPromptId: taskId,
-          requestBody: { task_state: "R" }
-        })
-      )
+      const promises = taskIds.map(taskId => startSingleTask(taskId))
       return Promise.all(promises)
     },
     onSuccess: () => {
@@ -328,6 +341,59 @@ function TaskCreatRolePromptsTable() {
     }
   })
 
+  // 同步到角色提示词
+  const syncToRolePromptsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/v1/sync/sync-batch-to-role-prompts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || "同步失败")
+      }
+      return response.json()
+    },
+    onSuccess: (data) => {
+      const successResults = data.results.filter((r: any) => r.status === "success")
+      const skippedResults = data.results.filter((r: any) => r.status === "skipped")
+      const errorResults = data.results.filter((r: any) => r.status === "error")
+
+      let message = `同步完成！`
+      if (successResults.length > 0) {
+        message += ` 成功同步 ${successResults.length} 个批次`
+      }
+      if (skippedResults.length > 0) {
+        message += ` 跳过 ${skippedResults.length} 个批次`
+      }
+      if (errorResults.length > 0) {
+        message += ` 失败 ${errorResults.length} 个批次`
+      }
+
+      toaster.create({
+        title: message,
+        description: data.results.map((r: any) => 
+          `批次${r.batch_number}: ${r.status === "success" ? "成功" : r.status === "skipped" ? r.reason : r.error}`
+        ).join("\n"),
+        status: errorResults.length > 0 ? "warning" : "success",
+        duration: 6000,
+      })
+      
+      // 刷新数据
+      queryClient.invalidateQueries({ queryKey: ["task-creat-role-prompts"] })
+    },
+    onError: (error: Error) => {
+      toaster.create({
+        title: "同步失败",
+        description: error.message,
+        status: "error",
+      })
+    },
+  })
+
   const { data, isLoading, isPlaceholderData } = useQuery({
     ...getTaskCreatRolePromptsQueryOptions({
       page,
@@ -374,6 +440,8 @@ function TaskCreatRolePromptsTable() {
     switch (state) {
       case "C":
         return { label: "已完成", color: "green" }
+      case "S":
+        return { label: "已同步", color: "teal" }
       case "P":
         return { label: "待启动", color: "orange" }
       case "F":
@@ -399,6 +467,12 @@ function TaskCreatRolePromptsTable() {
   const handleRefresh = () => {
     console.log("手动刷新任务列表")
     queryClient.invalidateQueries({ queryKey: ["task-creat-role-prompts"] })
+  }
+
+  const handleSyncToRolePrompts = () => {
+    if (window.confirm("确定要同步已完成的任务到角色提示词吗？只有批次内所有任务都完成的才会被同步。")) {
+      syncToRolePromptsMutation.mutate()
+    }
   }
 
   // 批量操作处理函数
@@ -507,6 +581,17 @@ function TaskCreatRolePromptsTable() {
         {/* 右侧按钮组 */}
         <Flex gap={3}>
           <AddTaskCreatRolePrompt />
+          <Button
+            colorScheme="blue"
+            onClick={handleSyncToRolePrompts}
+            size="sm"
+            minW="120px"
+            height="32px"
+            border="2px solid"
+            borderColor="red.500"
+          >
+            同步到角色提示词
+          </Button>
           <Button
             colorScheme="teal"
             onClick={handleRefresh}

@@ -133,8 +133,7 @@ const AddRoleTemplateItem = () => {
                     <option value="">请选择角色模板</option>
                     {roleTemplatesData?.data.map((template) => (
                       <option key={template.id} value={template.id}>
-                        {template.template_name || `ID:${template.id}`} -{" "}
-                        {template.role?.name}
+                        {template.template_name || `ID:${template.id}`}
                       </option>
                     ))}
                   </select>

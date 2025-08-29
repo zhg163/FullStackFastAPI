@@ -189,7 +189,7 @@ function PromptGenerator() {
               task_state: "P", // 待启动
               task_cmd: {
                 strategy: formData.strategy || "default",
-                description: formData.task_description || "",
+                description: item.item_prompt_desc || formData.task_description || "",
                 timeStamp: timeStamp,
                 templateId: selectedTemplateId,
                 templateItemId: item.id,

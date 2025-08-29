@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
-from sqlalchemy import Column, JSON
+from sqlalchemy import Column, JSON, Integer
 
 
 # Shared properties
@@ -260,7 +260,7 @@ class RoleTemplateItemsPublic(SQLModel):
 # RolePrompt models - 角色提示词
 class RolePromptBase(SQLModel):
     role_id: int = Field(description="角色ID（关联roles表）")
-    version: int = Field(description="版本号")
+    version: int = Field(sa_column=Column(Integer), description="版本号")
     user_prompt: dict = Field(default={}, sa_column=Column(JSON), description="用户提示词内容（JSON格式）")
     is_active: str | None = Field(default="Y", max_length=1, description="是否激活(Y/N)")
 
@@ -269,7 +269,7 @@ class RolePromptCreate(RolePromptBase):
 
 class RolePromptUpdate(RolePromptBase):
     role_id: int | None = Field(default=None, description="角色ID（关联roles表）")
-    version: int | None = Field(default=None, description="版本号")
+    version: int | None = Field(default=None, sa_column=Column(Integer), description="版本号")
     user_prompt: dict | None = Field(default=None, sa_column=Column(JSON), description="用户提示词内容（JSON格式）")
 
 class RolePrompt(RolePromptBase, table=True):

@@ -7,6 +7,7 @@ import {
   Button,
   DialogActionTrigger,
   DialogTitle,
+  HStack,
   Input,
   Text,
   Textarea,
@@ -227,39 +228,111 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
               </Field>
 
               <Field label="任务命令">
-                <Textarea
-                  value={taskCmdText}
-                  onChange={(e) => setTaskCmdText(e.target.value)}
-                  placeholder='输入JSON格式的任务命令，例如：
+                <VStack gap={2}>
+                  <HStack gap={2} width="100%" justifyContent="flex-end">
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      onClick={() => {
+                        try {
+                          // 先清理转义符和换行符，然后尝试解析JSON
+                          let cleanText = taskCmdText
+                            .replace(/\\n/g, ' ')           // 清理 \n
+                            .replace(/\\"/g, '"')           // 清理 \" 转为 "
+                            .replace(/\\'/g, "'")           // 清理 \' 转为 '
+                            .replace(/\\\\/g, '\\')         // 清理 \\ 转为 \
+                            .replace(/\\r/g, '')            // 清理 \r
+                            .replace(/\\t/g, ' ')           // 清理 \t 转为空格
+                          
+                          // 尝试解析为JSON并格式化
+                          const parsed = JSON.parse(cleanText)
+                          setTaskCmdText(JSON.stringify(parsed, null, 2))
+                        } catch {
+                          // 如果不是JSON，就直接清理转义符
+                          const cleanText = taskCmdText
+                            .replace(/\\n/g, ' ')           // 清理 \n
+                            .replace(/\\"/g, '"')           // 清理 \" 转为 "
+                            .replace(/\\'/g, "'")           // 清理 \' 转为 '
+                            .replace(/\\\\/g, '\\')         // 清理 \\ 转为 \
+                            .replace(/\\r/g, '')            // 清理 \r
+                            .replace(/\\t/g, ' ')           // 清理 \t 转为空格
+                          setTaskCmdText(cleanText)
+                        }
+                      }}
+                    >
+                      格式化/清理转义符
+                    </Button>
+                  </HStack>
+                  <Textarea
+                    value={taskCmdText}
+                    onChange={(e) => setTaskCmdText(e.target.value)}
+                    placeholder='输入JSON格式的任务命令，例如：
 {
   "command": "create_full_role",
   "params": {"version": 1}
 }'
-                  rows={4}
-                  resize="vertical"
-                  fontFamily="monospace"
-                />
-                <Text fontSize="xs" color="gray.500" mt={1}>
-                  请输入有效的JSON格式，或者普通文本（将自动转换为JSON）
-                </Text>
+                    rows={4}
+                    resize="vertical"
+                    fontFamily="monospace"
+                  />
+                  <Text fontSize="xs" color="gray.500" mt={1}>
+                    请输入有效的JSON格式，或者普通文本（将自动转换为JSON）。点击"格式化/清理转义符"按钮可自动清理 \n、\"、\' 等转义字符
+                  </Text>
+                </VStack>
               </Field>
 
               <Field label="角色条目提示词">
-                <Textarea
-                  value={roleItemPromptText}
-                  onChange={(e) => setRoleItemPromptText(e.target.value)}
-                  placeholder='输入JSON格式的角色条目提示词，例如：
+                <VStack gap={2}>
+                  <HStack gap={2} width="100%" justifyContent="flex-end">
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      onClick={() => {
+                        try {
+                          // 先清理转义符和换行符，然后尝试解析JSON
+                          let cleanText = roleItemPromptText
+                            .replace(/\\n/g, ' ')           // 清理 \n
+                            .replace(/\\"/g, '"')           // 清理 \" 转为 "
+                            .replace(/\\'/g, "'")           // 清理 \' 转为 '
+                            .replace(/\\\\/g, '\\')         // 清理 \\ 转为 \
+                            .replace(/\\r/g, '')            // 清理 \r
+                            .replace(/\\t/g, ' ')           // 清理 \t 转为空格
+                          
+                          // 尝试解析为JSON并格式化
+                          const parsed = JSON.parse(cleanText)
+                          setRoleItemPromptText(JSON.stringify(parsed, null, 2))
+                        } catch {
+                          // 如果不是JSON，就直接清理转义符
+                          const cleanText = roleItemPromptText
+                            .replace(/\\n/g, ' ')           // 清理 \n
+                            .replace(/\\"/g, '"')           // 清理 \" 转为 "
+                            .replace(/\\'/g, "'")           // 清理 \' 转为 '
+                            .replace(/\\\\/g, '\\')         // 清理 \\ 转为 \
+                            .replace(/\\r/g, '')            // 清理 \r
+                            .replace(/\\t/g, ' ')           // 清理 \t 转为空格
+                          setRoleItemPromptText(cleanText)
+                        }
+                      }}
+                    >
+                      格式化/清理转义符
+                    </Button>
+                  </HStack>
+                  <Textarea
+                    value={roleItemPromptText}
+                    onChange={(e) => setRoleItemPromptText(e.target.value)}
+                    placeholder='输入JSON格式的角色条目提示词，例如：
 {
   "prompt_type": "basic",
   "category": "combat"
 }'
-                  rows={4}
-                  resize="vertical"
-                  fontFamily="monospace"
-                />
-                <Text fontSize="xs" color="gray.500" mt={1}>
-                  请输入有效的JSON格式，或者普通文本（将自动转换为JSON）
-                </Text>
+                    rows={4}
+                    resize="vertical"
+                    fontFamily="monospace"
+                  />
+                  <Text fontSize="xs" color="gray.500" mt={1}>
+                    请输入有效的JSON格式，或者普通文本（将自动转换为JSON）。点击"格式化/清理转义符"按钮可自动清理 \n、\"、\' 等转义字符
+                  </Text>
+                </VStack>
               </Field>
             </VStack>
           </DialogBody>

@@ -1,0 +1,227 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: docker.io # 可以改为其他镜像仓库
+  NAMESPACE: ${{ secrets.DOCKER_NAMESPACE }} # 在GitHub Secrets中设置
+  PROJECT_NAME: fullstack-fastapi
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          # 生成标签
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            # 如果是tag，使用tag名作为版本
+            TAG=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+            # 如果是main分支，使用latest
+            TAG=latest
+          else
+            # 其他分支使用分支名
+            TAG=${GITHUB_REF#refs/heads/}
+          fi
+
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "BACKEND_IMAGE=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.PROJECT_NAME }}-backend:$TAG" >> $GITHUB_OUTPUT
+          echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.PROJECT_NAME }}-frontend:$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.BACKEND_IMAGE }}
+            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.PROJECT_NAME }}-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.FRONTEND_IMAGE }}
+            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.PROJECT_NAME }}-frontend:latest
+          build-args: |
+            VITE_API_URL=http://localhost
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Generate deployment config
+        run: |
+          TAG="${{ steps.meta.outputs.TAG }}"
+
+          cat > docker-compose.release.yml << EOF
+          # 发布版本部署配置
+          # 镜像版本: $TAG
+          # 构建时间: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          # Git Commit: $GITHUB_SHA
+
+          version: "3.8"
+
+          services:
+            db:
+              image: postgres:17
+              restart: always
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U \${POSTGRES_USER} -d \${POSTGRES_DB}"]
+                interval: 10s
+                retries: 5
+                start_period: 30s
+                timeout: 10s
+              volumes:
+                - app-db-data:/var/lib/postgresql/data/pgdata
+              environment:
+                - PGDATA=/var/lib/postgresql/data/pgdata
+                - POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}
+                - POSTGRES_USER=\${POSTGRES_USER}
+                - POSTGRES_DB=\${POSTGRES_DB}
+              networks:
+                - backend-network
+
+            adminer:
+              image: adminer
+              restart: always
+              depends_on:
+                - db
+              environment:
+                - ADMINER_DESIGN=pepa-linha-dark
+              networks:
+                - backend-network
+              ports:
+                - "8080:8080"
+
+            prestart:
+              image: ${{ steps.meta.outputs.BACKEND_IMAGE }}
+              depends_on:
+                db:
+                  condition: service_healthy
+              environment:
+                - POSTGRES_SERVER=db
+                - POSTGRES_PORT=\${POSTGRES_PORT:-5432}
+                - POSTGRES_DB=\${POSTGRES_DB}
+                - POSTGRES_USER=\${POSTGRES_USER}
+                - POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}
+                - FIRST_SUPERUSER=\${FIRST_SUPERUSER}
+                - FIRST_SUPERUSER_PASSWORD=\${FIRST_SUPERUSER_PASSWORD}
+                - SECRET_KEY=\${SECRET_KEY}
+                - PROJECT_NAME=\${PROJECT_NAME}
+              networks:
+                - backend-network
+              command: python /app/app/backend_pre_start.py && alembic upgrade head && python /app/app/initial_data.py
+
+            backend:
+              image: ${{ steps.meta.outputs.BACKEND_IMAGE }}
+              restart: always
+              depends_on:
+                db:
+                  condition: service_healthy
+                prestart:
+                  condition: service_completed_successfully
+              environment:
+                - DOMAIN=\${DOMAIN}
+                - FRONTEND_HOST=\${FRONTEND_HOST}
+                - ENVIRONMENT=production
+                - PROJECT_NAME=\${PROJECT_NAME}
+                - BACKEND_CORS_ORIGINS=\${BACKEND_CORS_ORIGINS}
+                - SECRET_KEY=\${SECRET_KEY}
+                - FIRST_SUPERUSER=\${FIRST_SUPERUSER}
+                - FIRST_SUPERUSER_PASSWORD=\${FIRST_SUPERUSER_PASSWORD}
+                - POSTGRES_SERVER=db
+                - POSTGRES_PORT=\${POSTGRES_PORT:-5432}
+                - POSTGRES_DB=\${POSTGRES_DB}
+                - POSTGRES_USER=\${POSTGRES_USER}
+                - POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}
+              networks:
+                - frontend-network
+                - backend-network
+              ports:
+                - "8000:8000"
+
+            frontend:
+              image: ${{ steps.meta.outputs.FRONTEND_IMAGE }}
+              restart: always
+              depends_on:
+                - backend
+              networks:
+                - frontend-network
+              ports:
+                - "3000:80"
+
+          volumes:
+            app-db-data:
+
+          networks:
+            frontend-network:
+            backend-network:
+          EOF
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-config-${{ steps.meta.outputs.TAG }}
+          path: |
+            docker-compose.release.yml
+            registry-config.example
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## 🐳 Docker 镜像
+
+            **后端镜像**: `${{ steps.meta.outputs.BACKEND_IMAGE }}`
+            **前端镜像**: `${{ steps.meta.outputs.FRONTEND_IMAGE }}`
+
+            ## 🚀 快速部署
+
+            ```bash
+            # 下载部署配置
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/docker-compose.release.yml
+
+            # 配置环境变量 (参考 registry-config.example)
+            cp registry-config.example .env.production
+            # 编辑 .env.production 文件
+
+            # 启动应用
+            docker-compose -f docker-compose.release.yml up -d
+            ```
+
+            ## 📋 更新内容
+
+            请查看 [Commits](${{ github.server_url }}/${{ github.repository }}/commits/${{ github.ref_name }}) 了解详细更改。
+          draft: false
+          prerelease: false

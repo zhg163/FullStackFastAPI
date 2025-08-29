@@ -156,8 +156,7 @@ function SearchForm({ onSearch, onReset }: SearchFormProps) {
                 <option value="">选择角色模板</option>
                 {roleTemplatesData?.data.map((template) => (
                   <option key={template.id} value={template.id}>
-                    {template.template_name || `ID:${template.id}`} -{" "}
-                    {template.role?.name}
+                    {template.template_name || `ID:${template.id}`}
                   </option>
                 ))}
               </select>
@@ -276,7 +275,6 @@ function RoleTemplateItemsTable() {
               <Table.Cell fontWeight="medium">{item.item_name}</Table.Cell>
               <Table.Cell>
                 {item.template?.template_name || "未知模板"}
-                {item.template?.role?.name && ` (${item.template.role.name})`}
               </Table.Cell>
               <Table.Cell>
                 <Box
