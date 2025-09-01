@@ -11,13 +11,20 @@ export default defineConfig(({ command, mode }) => {
   // 确定API URL
   const apiUrl = env.VITE_API_URL || 'http://localhost:8000'
   
+  // 确定HMR主机 - 优先使用环境变量，否则使用localhost
+  const hmrHost = env.VITE_HMR_HOST || 'localhost'
+  const hmrPort = parseInt(env.VITE_HMR_PORT || '5173')
+  
   return {
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  plugins: [react(), TanStackRouterVite()],
+  define: {
+    // 确保环境变量在客户端可用
+    'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL || 'http://8.149.132.119:8000'),
+  },
   server: {
     host: "0.0.0.0",
     port: 5173,
@@ -35,10 +42,10 @@ export default defineConfig(({ command, mode }) => {
       "192.168.2.201"
     ],
     hmr: {
-      port: 5173,
-      host: "0.0.0.0",
+      port: hmrPort,
+      host: hmrHost,
       // 支持多个客户端连接
-      clientPort: 5173,
+      clientPort: hmrPort,
     },
     proxy: {
       "^/api/.*": {
