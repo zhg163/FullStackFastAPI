@@ -1,10 +1,17 @@
 import path from "node:path"
 import { TanStackRouterVite } from "@tanstack/router-vite-plugin"
 import react from "@vitejs/plugin-react-swc"
-import { defineConfig } from "vite"
+import { defineConfig, loadEnv } from "vite"
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ command, mode }) => {
+  // 加载环境变量
+  const env = loadEnv(mode, process.cwd(), '')
+  
+  // 确定API URL
+  const apiUrl = env.VITE_API_URL || 'http://localhost:8000'
+  
+  return {
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -35,7 +42,7 @@ export default defineConfig({
     },
     proxy: {
       "^/api/.*": {
-        target: "http://192.168.2.201:8000",
+        target: apiUrl,
         changeOrigin: true,
         secure: false,
         ws: true,
@@ -53,4 +60,4 @@ export default defineConfig({
       },
     },
   },
-})
+}})
