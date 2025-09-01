@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import React from "react"
+import React, { useState } from "react"
 import { FaTrash } from "react-icons/fa"
 
 import {
@@ -29,6 +29,7 @@ interface DeleteTaskCreatRolePromptProps {
 }
 
 const DeleteTaskCreatRolePrompt = ({ id }: DeleteTaskCreatRolePromptProps) => {
+  const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast } = useCustomToast()
 
@@ -39,17 +40,34 @@ const DeleteTaskCreatRolePrompt = ({ id }: DeleteTaskCreatRolePromptProps) => {
       }),
     onSuccess: () => {
       showSuccessToast("任务已删除")
+      setIsOpen(false) // 关闭对话框
+      
+      // 更全面的缓存失效
+      queryClient.invalidateQueries({ 
+        queryKey: ["task-creat-role-prompts"],
+        exact: false // 使用模糊匹配，失效所有相关查询
+      })
+      
+      // 刷新页面数据
+      setTimeout(() => {
+        queryClient.refetchQueries({ 
+          queryKey: ["task-creat-role-prompts"],
+          exact: false 
+        })
+      }, 100)
     },
     onError: (err: ApiError) => {
       handleError(err)
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["task-creat-role-prompts"] })
-    },
   })
 
   return (
-    <DialogRoot size="md" placement="center">
+    <DialogRoot 
+      size="md" 
+      placement="center"
+      open={isOpen}
+      onOpenChange={({ open }) => setIsOpen(open)}
+    >
       <DialogTrigger asChild>
         <MenuItem value="delete" color="red.600">
           <FaTrash fontSize="16px" />

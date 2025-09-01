@@ -71,15 +71,16 @@ def create_role_template(*, session: SessionDep, role_template_in: RoleTemplateC
     """
     Create new role template.
     """
-    # 检查关联的角色是否存在
-    role = session.get(Role, role_template_in.role_id)
-    if not role:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Role with id {role_template_in.role_id} not found"
-        )
+    # 如果提供了 role_id，检查关联的角色是否存在
+    if role_template_in.role_id is not None:
+        role = session.get(Role, role_template_in.role_id)
+        if not role:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Role with id {role_template_in.role_id} not found"
+            )
 
-    # 创建角色模板，避免之前的model_validate错误
+    # 创建角色模板
     role_template = RoleTemplate(**role_template_in.model_dump())
     session.add(role_template)
     session.commit()

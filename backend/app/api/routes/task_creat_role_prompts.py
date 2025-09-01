@@ -127,13 +127,28 @@ def delete_task_creat_role_prompt(task_prompt_id: int, session: SessionDep) -> A
     """
     删除角色创建提示词任务
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"开始删除任务 {task_prompt_id}")
+    
     task_prompt = session.get(TaskCreatRolePrompt, task_prompt_id)
     if not task_prompt:
+        logger.warning(f"任务 {task_prompt_id} 不存在")
         raise HTTPException(status_code=404, detail="Task prompt not found")
     
-    session.delete(task_prompt)
-    session.commit()
-    return {"message": "Task prompt deleted successfully"}
+    # 记录删除前的信息
+    logger.info(f"删除任务信息: ID={task_prompt.id}, 名称={task_prompt.task_name}, 状态={task_prompt.task_state}")
+    
+    try:
+        session.delete(task_prompt)
+        session.commit()
+        logger.info(f"任务 {task_prompt_id} 删除成功")
+        return {"message": "Task prompt deleted successfully"}
+    except Exception as e:
+        logger.error(f"删除任务 {task_prompt_id} 失败: {str(e)}")
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete task: {str(e)}")
 
 
 @router.post("/{id}/start", dependencies=[Depends(get_current_active_superuser)])

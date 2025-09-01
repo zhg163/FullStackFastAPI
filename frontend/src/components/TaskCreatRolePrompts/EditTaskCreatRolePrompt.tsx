@@ -235,28 +235,40 @@ const EditTaskCreatRolePrompt = ({ task }: EditTaskCreatRolePromptProps) => {
                       variant="outline"
                       onClick={() => {
                         try {
-                          // 先清理转义符和换行符，然后尝试解析JSON
                           let cleanText = taskCmdText
-                            .replace(/\\n/g, ' ')           // 清理 \n
-                            .replace(/\\"/g, '"')           // 清理 \" 转为 "
-                            .replace(/\\'/g, "'")           // 清理 \' 转为 '
-                            .replace(/\\\\/g, '\\')         // 清理 \\ 转为 \
-                            .replace(/\\r/g, '')            // 清理 \r
-                            .replace(/\\t/g, ' ')           // 清理 \t 转为空格
+                          
+                          // 移除开头和结尾的多余引号
+                          while (cleanText.startsWith('"') && cleanText.endsWith('"')) {
+                            try {
+                              cleanText = JSON.parse(cleanText)
+                            } catch {
+                              // 如果JSON.parse失败，手动去掉引号
+                              cleanText = cleanText.slice(1, -1)
+                            }
+                          }
+                          
+                          // 清理转义符
+                          if (typeof cleanText === 'string') {
+                            cleanText = cleanText
+                              .replace(/\\n/g, '\n')        // 清理 \n 转为真正的换行
+                              .replace(/\\"/g, '"')         // 清理 \" 转为 "
+                              .replace(/\\'/g, "'")         // 清理 \' 转为 '
+                              .replace(/\\\\/g, '\\')       // 清理 \\ 转为 \
+                              .replace(/\\r/g, '\r')        // 清理 \r
+                              .replace(/\\t/g, '\t')        // 清理 \t 转为制表符
+                          }
                           
                           // 尝试解析为JSON并格式化
-                          const parsed = JSON.parse(cleanText)
-                          setTaskCmdText(JSON.stringify(parsed, null, 2))
-                        } catch {
-                          // 如果不是JSON，就直接清理转义符
-                          const cleanText = taskCmdText
-                            .replace(/\\n/g, ' ')           // 清理 \n
-                            .replace(/\\"/g, '"')           // 清理 \" 转为 "
-                            .replace(/\\'/g, "'")           // 清理 \' 转为 '
-                            .replace(/\\\\/g, '\\')         // 清理 \\ 转为 \
-                            .replace(/\\r/g, '')            // 清理 \r
-                            .replace(/\\t/g, ' ')           // 清理 \t 转为空格
-                          setTaskCmdText(cleanText)
+                          try {
+                            const parsed = JSON.parse(cleanText)
+                            setTaskCmdText(JSON.stringify(parsed, null, 2))
+                          } catch {
+                            // 如果不是有效JSON，直接使用清理后的文本
+                            setTaskCmdText(cleanText)
+                          }
+                        } catch (error) {
+                          console.error('格式化失败:', error)
+                          // 发生错误时保持原文本不变
                         }
                       }}
                     >

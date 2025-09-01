@@ -183,13 +183,58 @@ function PromptGenerator() {
               currentTaskName: generatedTaskName
             }))
 
+            // 处理description字段，确保不会有多余的引号和转义字符
+            let description = item.item_prompt_desc || formData.task_description || ""
+            
+            console.log('原始 description:', description)
+            
+            // 深度清理多重转义和多余引号
+            if (typeof description === 'string' && description.length > 0) {
+              // 移除开头和结尾的多余引号（可能有多层）
+              let prevDescription = '';
+              while (description !== prevDescription && description.startsWith('"') && description.endsWith('"')) {
+                prevDescription = description;
+                try {
+                  // 尝试JSON解析
+                  const parsed = JSON.parse(description);
+                  if (typeof parsed === 'string') {
+                    description = parsed;
+                  } else {
+                    break;
+                  }
+                } catch {
+                  // JSON解析失败，手动去掉最外层引号
+                  if (description.length >= 2) {
+                    description = description.slice(1, -1);
+                  } else {
+                    break;
+                  }
+                }
+              }
+              
+              // 清理各种转义字符
+              if (typeof description === 'string') {
+                description = description
+                  .replace(/\\n/g, '\n')      // 转换 \n 为真正的换行
+                  .replace(/\\"/g, '"')       // 转换 \" 为 "
+                  .replace(/\\'/g, "'")       // 转换 \' 为 '
+                  .replace(/\\\\/g, '\\')     // 转换 \\ 为 \
+                  .replace(/\\t/g, '\t')      // 转换 \t 为制表符
+                  .replace(/\\r/g, '\r')      // 转换 \r 为回车符
+                  .replace(/\\f/g, '\f')      // 转换 \f 为换页符
+                  .replace(/\\b/g, '\b')      // 转换 \b 为退格符
+              }
+            }
+            
+            console.log('清理后 description:', description)
+
             const taskCreateData: TaskCreatRolePromptCreate = {
               task_name: generatedTaskName,
               role_id: role.id!,
               task_state: "P", // 待启动
               task_cmd: {
                 strategy: formData.strategy || "default",
-                description: item.item_prompt_desc || formData.task_description || "",
+                description: description,
                 timeStamp: timeStamp,
                 templateId: selectedTemplateId,
                 templateItemId: item.id,
