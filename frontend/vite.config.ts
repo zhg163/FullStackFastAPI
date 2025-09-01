@@ -15,6 +15,9 @@ export default defineConfig(({ command, mode }) => {
   const hmrHost = env.VITE_HMR_HOST || 'localhost'
   const hmrPort = parseInt(env.VITE_HMR_PORT || '5173')
   
+  // 是否为生产环境
+  const isProd = mode === 'production' || command === 'build'
+  
   return {
   resolve: {
     alias: {
@@ -30,6 +33,12 @@ export default defineConfig(({ command, mode }) => {
     port: 5173,
     strictPort: true,
     cors: true,
+    // 针对阿里云服务器优化
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    },
     // 明确允许的网络接口
     allowedHosts: [
       "localhost",
@@ -38,10 +47,11 @@ export default defineConfig(({ command, mode }) => {
       "172.23.57.43",
       "172.18.0.1",
       "172.17.0.1",
-      "8.149.132.119", // 新添加的外部IP
+      "8.149.132.119", // 阿里云外部IP
       "192.168.2.201"
     ],
-    hmr: {
+    // 只在开发环境启用HMR
+    hmr: isProd ? false : {
       port: hmrPort,
       host: hmrHost,
       // 支持多个客户端连接
@@ -53,6 +63,8 @@ export default defineConfig(({ command, mode }) => {
         changeOrigin: true,
         secure: false,
         ws: true,
+        // 阿里云服务器优化
+        timeout: 60000,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
             console.log('proxy error', err);
@@ -67,4 +79,18 @@ export default defineConfig(({ command, mode }) => {
       },
     },
   },
-}})
+  // 构建优化配置
+  build: {
+    // 针对阿里云服务器优化
+    minify: 'esbuild',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        // 禁用代码分割，避免网络传输问题
+        manualChunks: undefined,
+      }
+    },
+    // 增加构建内存限制
+    chunkSizeWarningLimit: 1000,
+  },
+}}))

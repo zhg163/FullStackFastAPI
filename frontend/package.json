@@ -7,8 +7,10 @@
     "dev": "vite",
     "dev:external": "vite --host 8.149.132.119 --port 5173",
     "build": "vite build --mode production",
-    "lint": "biome check --apply-unsafe --no-errors-on-unmatched --files-ignore-unknown=true ./",
+    "build:external": "vite build --mode production && vite preview --host 8.149.132.119 --port 5173",
     "preview": "vite preview",
+    "preview:external": "vite preview --host 8.149.132.119 --port 5173",
+    "lint": "biome check --apply-unsafe --no-errors-on-unmatched --files-ignore-unknown=true ./",
     "generate-client": "openapi-ts"
   },
   "dependencies": {
