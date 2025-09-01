@@ -13,6 +13,6 @@ export NODE_ENV=development
 
 # 启动前端开发服务器
 cd "$(dirname "$0")"
-npm run dev -- --host 8.149.132.119 --port 5173
+npm run dev -- --host 0.0.0.0 --port 5173
 
 echo "开发服务器已停止"

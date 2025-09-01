@@ -93,6 +93,6 @@ export default defineConfig(({ command, mode }) => {
       },
       // 增加构建内存限制
       chunkSizeWarningLimit: 1000,
-    },
+    }
   }
 })
