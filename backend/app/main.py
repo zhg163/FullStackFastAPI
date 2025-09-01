@@ -21,13 +21,20 @@ app = FastAPI(
 )
 
 # Set all CORS enabled origins
-cors_origins = settings.all_cors_origins if settings.all_cors_origins else [
+cors_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173", 
-    "http://192.168.2.201:5173",  # 您的实际 IP
+    "http://192.168.2.201:5173",  # 本地开发IP
     "http://0.0.0.0:5173",
     "http://8.149.132.119:5173",  # 阿里云公网IP
 ]
+
+# 添加配置文件中的CORS源
+if settings.all_cors_origins:
+    cors_origins.extend(settings.all_cors_origins)
+
+# 去重
+cors_origins = list(set(cors_origins))
 
 app.add_middleware(
     CORSMiddleware,
