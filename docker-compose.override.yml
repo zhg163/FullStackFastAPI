@@ -59,6 +59,7 @@ services:
     restart: "no"
     ports:
       - "8000:8000"
+      - "8.149.132.119:8000:8000"  # 支持外部IP访问
     build:
       context: ./backend
     # command: sleep infinity  # Infinite loop to keep container alive doing nothing
@@ -85,6 +86,8 @@ services:
       SMTP_PORT: "1025"
       SMTP_TLS: "false"
       EMAILS_FROM_EMAIL: "noreply@example.com"
+      # 添加CORS支持多个前端域名
+      BACKEND_CORS_ORIGINS: "http://localhost:5173,http://8.149.132.119:5173,http://172.23.57.43:5173,http://172.18.0.1:5173,http://172.17.0.1:5173"
 
   mailcatcher:
     image: schickling/mailcatcher
@@ -96,10 +99,11 @@ services:
     restart: "no"
     ports:
       - "5173:80"
+      - "8.149.132.119:5173:80"  # 支持外部IP访问
     build:
       context: ./frontend
       args:
-        - VITE_API_URL=http://localhost:8000
+        - VITE_API_URL=http://8.149.132.119:8000  # 更新API地址
         - NODE_ENV=development
 
   playwright:

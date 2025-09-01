@@ -1,0 +1,33 @@
+# 8.149.132.119 服务器开发环境配置
+# 使用方法: docker-compose -f docker-compose.yml -f docker-compose.8149132119.yml up
+
+services:
+  frontend:
+    ports:
+      - "8.149.132.119:5173:80"  # 绑定到特定IP的5173端口
+    environment:
+      - VITE_API_URL=http://8.149.132.119:8000
+    networks:
+      - frontend-network
+      - default
+
+  backend:
+    ports:
+      - "8.149.132.119:8000:8000"  # 绑定到特定IP的8000端口
+    environment:
+      - FRONTEND_HOST=http://8.149.132.119:5173
+      - BACKEND_CORS_ORIGINS=http://localhost:5173,http://8.149.132.119:5173,http://172.23.57.43:5173,http://172.18.0.1:5173,http://172.17.0.1:5173
+    networks:
+      - frontend-network
+      - backend-network
+      - default
+
+  db:
+    ports:
+      - "8.149.132.119:5432:5432"  # 如果需要外部访问数据库
+
+networks:
+  frontend-network:
+    driver: bridge
+  backend-network:
+    driver: bridge

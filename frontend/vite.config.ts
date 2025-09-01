@@ -16,9 +16,22 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     cors: true,
+    // 明确允许的网络接口
+    allowedHosts: [
+      "localhost",
+      "127.0.0.1",
+      "0.0.0.0",
+      "172.23.57.43",
+      "172.18.0.1",
+      "172.17.0.1",
+      "8.149.132.119", // 新添加的外部IP
+      "192.168.2.201"
+    ],
     hmr: {
       port: 5173,
       host: "0.0.0.0",
+      // 支持多个客户端连接
+      clientPort: 5173,
     },
     proxy: {
       "^/api/.*": {
