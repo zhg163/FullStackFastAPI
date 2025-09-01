@@ -25,7 +25,8 @@ cors_origins = settings.all_cors_origins if settings.all_cors_origins else [
     "http://localhost:5173",
     "http://127.0.0.1:5173", 
     "http://192.168.2.201:5173",  # 您的实际 IP
-    "http://0.0.0.0:5173"
+    "http://0.0.0.0:5173",
+    "http://8.149.132.119:5173",  # 阿里云公网IP
 ]
 
 app.add_middleware(
