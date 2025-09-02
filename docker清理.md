@@ -27,6 +27,8 @@ fastapi dev app/main.py &
 uv run fastapi dev app/main.py
 
 
+nohup python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
+
 # 1. 安装依赖
 cd backend && uv sync
 
@@ -45,7 +47,7 @@ apt install npm
 npm install
 npm run dev &
 
-
+nohup npm run dev > npm-dev.log 2>&1 &
 
 
 

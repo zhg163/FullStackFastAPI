@@ -358,7 +358,6 @@ class ExternalApiClient:
             elif self.current_provider == ApiProvider.DEEPSEEK:
                 provider_config = self.api_configs[ApiProvider.DEEPSEEK]
                 return await self._call_deepseek(task_id, command, provider_config)
-
             else:
                 return ApiResponse.error_response(
                     f"{self.ERROR_MESSAGES['unsupported_provider']}: {self.current_provider}",

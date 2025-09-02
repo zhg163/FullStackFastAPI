@@ -8,8 +8,12 @@ export default defineConfig(({ command, mode }) => {
   // 加载环境变量
   const env = loadEnv(mode, process.cwd(), '')
   
-  // 确定API URL
+  // 确定API URL - 优先使用 .env.local，然后是环境变量，最后是默认值
   const apiUrl = env.VITE_API_URL || 'http://localhost:8000'
+  
+  console.log('Vite Config - Mode:', mode)
+  console.log('Vite Config - API URL:', apiUrl)
+  console.log('Vite Config - All VITE_ env vars:', Object.keys(env).filter(key => key.startsWith('VITE_')).reduce((obj, key) => { obj[key] = env[key]; return obj; }, {}))
   
   // 确定HMR主机 - 优先使用环境变量，否则使用localhost
   const hmrHost = env.VITE_HMR_HOST || 'localhost'
@@ -26,8 +30,8 @@ export default defineConfig(({ command, mode }) => {
     },
     plugins: [react(), TanStackRouterVite()],
     define: {
-      // 确保环境变量在客户端可用
-      'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL || 'http://8.149.132.119:8000'),
+      // 使用明确的API URL配置
+      'import.meta.env.VITE_API_URL': JSON.stringify(apiUrl),
     },
     server: {
       host: "0.0.0.0",
